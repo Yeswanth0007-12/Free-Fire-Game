@@ -26,6 +26,7 @@ if db_url.startswith("sqlite+aiosqlite"):
     db_url_sync = db_url.replace("sqlite+aiosqlite", "sqlite")
 elif db_url.startswith("postgresql+asyncpg"):
     db_url_sync = db_url.replace("postgresql+asyncpg", "postgresql")
+    db_url_sync = db_url_sync.replace("?ssl=require", "?sslmode=require")
 else:
     db_url_sync = db_url
 
