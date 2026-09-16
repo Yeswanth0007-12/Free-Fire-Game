@@ -16,8 +16,9 @@ else:
     # For serverless / pooled Supabase environments, pool size can be tuned
     engine_kwargs["pool_pre_ping"] = True
     if "supabase.co" in settings.DATABASE_URL:
-        # Supabase SSL requirement
+        # Supabase uses pgbouncer which doesn't support prepared statements
         connect_args["ssl"] = "require"
+        connect_args["statement_cache_size"] = 0
         engine_kwargs["connect_args"] = connect_args
 
 engine = create_async_engine(
