@@ -31,7 +31,7 @@ class Payment(Base):
 
     amount_minor = Column(BigInteger, nullable=False)
     currency = Column(String(3), default="INR", nullable=False)
-    status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.CREATED, nullable=False, index=True)
+    status = Column(String(20), default=PaymentStatus.CREATED.value, nullable=False, index=True)
 
     notes = Column(JSON, default=dict, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)

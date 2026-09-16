@@ -19,7 +19,7 @@ class RiskFlag(Base):
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
 
     risk_type = Column(String(100), nullable=False, index=True)  # DUPLICATE_FF_UID, RAPID_JOIN, SUSPICIOUS_SETTLEMENT
-    severity = Column(SQLEnum(RiskSeverity), default=RiskSeverity.MEDIUM, nullable=False, index=True)
+    severity = Column(String(20), default=RiskSeverity.MEDIUM.value, nullable=False, index=True)
     details = Column(JSON, default=dict, nullable=False)
     resolved = Column(Boolean, default=False, nullable=False, index=True)
 

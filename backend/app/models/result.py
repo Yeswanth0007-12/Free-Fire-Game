@@ -27,7 +27,7 @@ class MatchResult(Base):
     submitted_by_user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     verified_by_user_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
 
-    status = Column(SQLEnum(ResultSubmissionStatus), default=ResultSubmissionStatus.SUBMITTED, nullable=False, index=True)
+    status = Column(String(20), default=ResultSubmissionStatus.SUBMITTED.value, nullable=False, index=True)
     scores = Column(JSON, default=dict, nullable=False)  # team scores, rounds won/lost
     raw_payload = Column(JSON, default=dict, nullable=False)
     notes = Column(Text, nullable=True)

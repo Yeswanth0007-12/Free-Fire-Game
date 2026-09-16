@@ -21,7 +21,7 @@ class MatchRegistration(Base):
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     team_id = Column(String(36), ForeignKey("teams.id", ondelete="SET NULL"), nullable=True, index=True)
 
-    status = Column(SQLEnum(RegistrationStatus), default=RegistrationStatus.RESERVED, nullable=False, index=True)
+    status = Column(String(20), default=RegistrationStatus.RESERVED.value, nullable=False, index=True)
     slot_number = Column(Integer, nullable=False)
     reserved_until = Column(DateTime(timezone=True), nullable=True)  # expires if unconfirmed
 

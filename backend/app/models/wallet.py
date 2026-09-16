@@ -58,9 +58,9 @@ class WalletTransaction(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     wallet_id = Column(String(36), ForeignKey("wallets.id", ondelete="CASCADE"), nullable=False, index=True)
-    type = Column(SQLEnum(TransactionType), nullable=False, index=True)
+    type = Column(String(20), nullable=False, index=True)
     amount_minor = Column(BigInteger, nullable=False)  # in paise
-    direction = Column(SQLEnum(TransactionDirection), nullable=False)
+    direction = Column(String(10), nullable=False)
     balance_after_minor = Column(BigInteger, nullable=False)
 
     reference_type = Column(String(50), nullable=False, index=True)  # MATCH, PAYMENT, WITHDRAWAL, ADMIN
@@ -68,7 +68,7 @@ class WalletTransaction(Base):
     idempotency_key = Column(String(150), unique=True, index=True, nullable=False)
 
     description = Column(String(255), nullable=False)
-    status = Column(SQLEnum(TransactionStatus), default=TransactionStatus.SUCCESS, nullable=False, index=True)
+    status = Column(String(20), default=TransactionStatus.SUCCESS.value, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
 
     wallet = relationship("Wallet", back_populates="transactions")

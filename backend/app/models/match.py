@@ -75,11 +75,11 @@ class Match(Base):
     room_password_encrypted = Column(Text, nullable=True)
 
     host_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
-    team_assignment_mode = Column(SQLEnum(TeamAssignmentMode), default=TeamAssignmentMode.AUTO, nullable=False)
+    team_assignment_mode = Column(String(20), default=TeamAssignmentMode.AUTO.value, nullable=False)
 
-    status = Column(SQLEnum(MatchStatus), default=MatchStatus.SCHEDULED, nullable=False, index=True)
-    result_status = Column(SQLEnum(ResultStatus), default=ResultStatus.PENDING, nullable=False, index=True)
-    settlement_status = Column(SQLEnum(SettlementStatus), default=SettlementStatus.UNSETTLED, nullable=False, index=True)
+    status = Column(String(30), default=MatchStatus.SCHEDULED.value, nullable=False, index=True)
+    result_status = Column(String(20), default=ResultStatus.PENDING.value, nullable=False, index=True)
+    settlement_status = Column(String(20), default=SettlementStatus.UNSETTLED.value, nullable=False, index=True)
 
     rules_text = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)

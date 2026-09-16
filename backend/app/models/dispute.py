@@ -30,9 +30,9 @@ class Dispute(Base):
     match_id = Column(String(36), ForeignKey("matches.id"), nullable=False, index=True)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
 
-    dispute_type = Column(SQLEnum(DisputeType), nullable=False, index=True)
+    dispute_type = Column(String(30), nullable=False, index=True)
     description = Column(Text, nullable=False)
-    status = Column(SQLEnum(DisputeStatus), default=DisputeStatus.OPEN, nullable=False, index=True)
+    status = Column(String(30), default=DisputeStatus.OPEN.value, nullable=False, index=True)
 
     resolution_notes = Column(Text, nullable=True)
     resolved_by_user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
