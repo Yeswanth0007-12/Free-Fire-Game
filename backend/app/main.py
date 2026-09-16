@@ -106,15 +106,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-# Unhandled Exception Handler (never expose raw traces to clients)
+# Unhandled Exception Handler
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     logger.exception(f"Unhandled server error at {request.url.path}: {exc}")
+    err_message = f"Server Error: {str(exc)}" if settings.DEBUG else "An unexpected server error occurred. Please try again later."
     return JSONResponse(
         status_code=500,
         content=ApiResponse.fail(
             code="INTERNAL_SERVER_ERROR",
-            message="An unexpected server error occurred. Please try again later."
+            message=err_message
         ).model_dump(),
         headers=_cors_headers(request)
     )

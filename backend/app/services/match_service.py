@@ -70,20 +70,21 @@ class MatchService:
             max_players=req.max_players,
             current_players=0,
             max_teams=req.max_teams,
-            registration_start_at=req.registration_start_at,
-            registration_close_at=req.registration_close_at,
-            match_start_at=req.match_start_at,
-            result_deadline_at=req.result_deadline_at,
-            room_release_at=req.room_release_at,
+            registration_start_at=reg_start,
+            registration_close_at=reg_close,
+            match_start_at=ensure_utc(req.match_start_at),
+            result_deadline_at=ensure_utc(req.result_deadline_at),
+            room_release_at=ensure_utc(req.room_release_at),
             room_id_encrypted=enc_room_id,
             room_password_encrypted=enc_room_pass,
             host_id=host_id,
-            team_assignment_mode=req.team_assignment_mode,
-            status=initial_status,
-            result_status=ResultStatus.PENDING,
-            settlement_status=SettlementStatus.UNSETTLED,
+            team_assignment_mode=req.team_assignment_mode.value if hasattr(req.team_assignment_mode, "value") else str(req.team_assignment_mode),
+            status=initial_status.value if hasattr(initial_status, "value") else str(initial_status),
+            result_status=ResultStatus.PENDING.value if hasattr(ResultStatus.PENDING, "value") else str(ResultStatus.PENDING),
+            settlement_status=SettlementStatus.UNSETTLED.value if hasattr(SettlementStatus.UNSETTLED, "value") else str(SettlementStatus.UNSETTLED),
             rules_text=req.rules_text or "Standard Free Fire Competitive Tournament Rules apply. No cheating or unauthorized software."
         )
+        match.mode = mode
         db.add(match)
         await db.flush()
 

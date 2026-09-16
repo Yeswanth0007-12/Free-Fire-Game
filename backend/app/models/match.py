@@ -86,8 +86,8 @@ class Match(Base):
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
 
     # Relationships
-    game = relationship("Game", back_populates="matches")
-    mode = relationship("GameMode", back_populates="matches")
+    game = relationship("Game", back_populates="matches", lazy="selectin")
+    mode = relationship("GameMode", back_populates="matches", lazy="selectin")
     host = relationship("User", foreign_keys=[host_id])
     registrations = relationship("MatchRegistration", back_populates="match", cascade="all, delete-orphan")
     teams = relationship("Team", back_populates="match", cascade="all, delete-orphan")
