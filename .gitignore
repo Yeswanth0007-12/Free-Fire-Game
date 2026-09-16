@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Build Outputs
+.next/
+out/
+build/
+dist/
+
+# Database
+*.db
+*.sqlite3
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log

@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # Supabase / PostgreSQL Database (Used if local container requested)
+  postgres:
+    image: postgres:16-alpine
+    container_name: freefire_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: tournament_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # In-Memory Cache & Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: freefire_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: freefire_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password123@postgres:5432/tournament_db
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: dev_super_secret_jwt_key_at_least_32_characters_long
+      JWT_REFRESH_SECRET: dev_super_secret_refresh_jwt_key_32_chars
+      ENCRYPTION_KEY: v3y8Z7x0W9uA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU=
+      RAZORPAY_KEY_ID: rzp_test_placeholder_key
+      RAZORPAY_KEY_SECRET: rzp_test_placeholder_secret
+      RAZORPAY_WEBHOOK_SECRET: rzp_webhook_secret_key
+      WITHDRAWALS_ENABLED: "false"
+      REAL_MONEY_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Background Lifecycle & Reservation Worker
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: freefire_worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.scheduler"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password123@postgres:5432/tournament_db
+      REDIS_URL: redis://redis:6379/0
+      ENCRYPTION_KEY: v3y8Z7x0W9uA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU=
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Next.js 16+ Frontend Web App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: freefire_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
