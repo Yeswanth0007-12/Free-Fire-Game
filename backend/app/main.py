@@ -71,12 +71,25 @@ app.add_middleware(
 )
 
 
+def _cors_headers(request: Request) -> dict:
+    origin = request.headers.get("origin")
+    if origin and ("vercel.app" in origin or "localhost" in origin or "127.0.0.1" in origin):
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    return {}
+
+
 # Global Exception Handler for Business Exceptions
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=exc.status_code,
-        content=ApiResponse.fail(code=exc.code, message=exc.message, data=exc.data).model_dump()
+        content=ApiResponse.fail(code=exc.code, message=exc.message, data=exc.data).model_dump(),
+        headers=_cors_headers(request)
     )
 
 
@@ -88,7 +101,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     msg = f"{first_error.get('loc', ['field'])[-1]}: {first_error.get('msg', 'Validation error')}"
     return JSONResponse(
         status_code=422,
-        content=ApiResponse.fail(code="VALIDATION_ERROR", message=msg, data=errors).model_dump()
+        content=ApiResponse.fail(code="VALIDATION_ERROR", message=msg, data=errors).model_dump(),
+        headers=_cors_headers(request)
     )
 
 
@@ -101,7 +115,8 @@ async def general_exception_handler(request: Request, exc: Exception):
         content=ApiResponse.fail(
             code="INTERNAL_SERVER_ERROR",
             message="An unexpected server error occurred. Please try again later."
-        ).model_dump()
+        ).model_dump(),
+        headers=_cors_headers(request)
     )
 
 

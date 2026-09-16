@@ -29,6 +29,14 @@ def generate_match_code() -> str:
     return f"FF-{rand}"
 
 
+def ensure_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 class MatchService:
     @staticmethod
     async def create_match(db: AsyncSession, req: MatchCreateRequest, host_id: Optional[str] = None) -> Match:
@@ -42,9 +50,11 @@ class MatchService:
         enc_room_id = encrypt_room_credential(req.room_id) if req.room_id else None
         enc_room_pass = encrypt_room_credential(req.room_password) if req.room_password else None
 
+        reg_start = ensure_utc(req.registration_start_at)
+        reg_close = ensure_utc(req.registration_close_at)
         now = datetime.now(timezone.utc)
         initial_status = MatchStatus.SCHEDULED
-        if req.registration_start_at <= now < req.registration_close_at:
+        if reg_start and reg_close and reg_start <= now < reg_close:
             initial_status = MatchStatus.REGISTRATION_OPEN
 
         match = Match(

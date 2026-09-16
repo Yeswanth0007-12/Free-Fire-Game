@@ -59,7 +59,8 @@ class AuthService:
         await db.flush()
 
         # Generate tokens
-        token_payload = {"sub": user.id, "email": user.email, "role": user.role.value}
+        role_str = user.role.value if hasattr(user.role, "value") else str(user.role)
+        token_payload = {"sub": user.id, "email": user.email, "role": role_str}
         access_token = create_access_token(token_payload)
         refresh_token = create_refresh_token(token_payload)
 
@@ -85,7 +86,8 @@ class AuthService:
         user.last_login_at = datetime.now(timezone.utc)
         await db.flush()
 
-        token_payload = {"sub": user.id, "email": user.email, "role": user.role.value}
+        role_str = user.role.value if hasattr(user.role, "value") else str(user.role)
+        token_payload = {"sub": user.id, "email": user.email, "role": role_str}
         access_token = create_access_token(token_payload)
         refresh_token = create_refresh_token(token_payload)
 
