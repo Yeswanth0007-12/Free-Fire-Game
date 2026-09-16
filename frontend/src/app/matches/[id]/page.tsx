@@ -68,7 +68,10 @@ export default function MatchDetailPage() {
     // Setup real-time WebSocket connection for live match slot updates
     let ws: WebSocket | null = null;
     try {
-      ws = new WebSocket(`ws://localhost:8000/ws/matches/${matchId}`);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const wsHost = apiBase.replace(/^http(s?):\/\//, "ws$1://").replace(/\/api\/v1\/?$/, "");
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `${wsHost}/ws/matches/${matchId}`;
+      ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data);

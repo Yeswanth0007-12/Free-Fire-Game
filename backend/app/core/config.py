@@ -1,6 +1,7 @@
+import json
 import os
-from typing import List
-from pydantic import Field
+from typing import List, Union
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,11 +44,37 @@ class Settings(BaseSettings):
     PAYMENT_MODE_SIMULATION: bool = True  # Allows test checkouts when true
 
     # CORS
-    CORS_ORIGINS: List[str] = [
+    CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
+        "https://free-fire-game-rose.vercel.app",
     ]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return [
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000",
+                    "http://localhost:8000",
+                    "https://free-fire-game-rose.vercel.app",
+                ]
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(i).strip().rstrip("/") for i in parsed if i]
+                except Exception:
+                    pass
+                v = v[1:-1]
+            return [item.strip().strip("'\"").rstrip("/") for item in v.split(",") if item.strip()]
+        elif isinstance(v, list):
+            return [str(i).strip().rstrip("/") for i in v if i]
+        return v
 
     # Feature Flags & Compliance
     REAL_MONEY_ENABLED: bool = False
