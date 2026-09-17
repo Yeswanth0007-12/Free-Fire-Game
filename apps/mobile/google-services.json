@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1088916786026",
+    "project_id": "free-fire-tournament-432c5",
+    "storage_bucket": "free-fire-tournament-432c5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088916786026:android:f6740e9563c1111d213313",
+        "android_client_info": {
+          "package_name": "com.Clashiq.tournament"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1088916786026-83vg7h5rairpe372mep0ngfnrkn7n0bp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Clashiq.tournament",
+            "certificate_hash": "b0a490b4174a8135fd0a97296a441f746611ba5b"
+          }
+        },
+        {
+          "client_id": "1088916786026-3d5v0djp450287bjofekil30hfnavpgf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPbbtDIICDrHsZkC8G_JJz2r9bxRcNCAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1088916786026-3d5v0djp450287bjofekil30hfnavpgf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
