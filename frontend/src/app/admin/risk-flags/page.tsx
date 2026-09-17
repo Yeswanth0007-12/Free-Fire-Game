@@ -17,7 +17,7 @@ export default function AdminRiskFlagsPage() {
     try {
       const res = await api.getAdminRiskFlags({ limit: 50 });
       if (res.success && res.data) {
-        setFlags(res.data.flags || []);
+        setFlags(Array.isArray(res.data) ? res.data : (res.data.flags || []));
       }
     } catch (err: any) {
       console.error(err);

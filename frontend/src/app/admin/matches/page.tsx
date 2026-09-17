@@ -22,7 +22,8 @@ export default function AdminMatchesPage() {
     try {
       const res = await api.getMatches({ limit: 100 });
       if (res.success && res.data) {
-        setMatches(res.data.matches || []);
+        const list = Array.isArray(res.data) ? res.data : (res.data.matches || []);
+        setMatches(list);
       }
     } catch (err: any) {
       console.error(err);
@@ -58,10 +59,11 @@ export default function AdminMatchesPage() {
 
   const filteredMatches = matches.filter((m) => {
     const matchesFilter = filterStatus === "ALL" || m.status === filterStatus;
+    const modeName = m.mode?.name || m.game_mode?.name || m.match_format || "";
     const matchesSearch = 
-      m.public_match_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.map_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (m.game_mode?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+      (m.public_match_code || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m.map_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      modeName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -168,7 +170,7 @@ export default function AdminMatchesPage() {
                   <tr key={m.id} className="hover:bg-zinc-800/30 transition-colors">
                     <td className="py-3 px-4">
                       <div className="font-bold text-amber-400 font-mono">{m.public_match_code}</div>
-                      <div className="text-zinc-300 font-medium">{m.game_mode?.name || "Free Fire"}</div>
+                      <div className="text-zinc-300 font-medium">{m.mode?.name || m.game_mode?.name || "Free Fire"}</div>
                       <div className="text-[10px] text-zinc-500">{m.match_format}</div>
                     </td>
 

@@ -114,9 +114,14 @@ class MatchService:
         if params.mode:
             stmt = stmt.join(Match.mode).where(GameMode.slug == params.mode)
         if params.format:
-            stmt = stmt.where(Match.match_format == params.format)
+            fmt = params.format.strip().lower()
+            stmt = stmt.where(or_(
+                func.lower(Match.match_format) == fmt,
+                Match.match_format.ilike(f"%{fmt}%")
+            ))
         if params.status:
-            stmt = stmt.where(Match.status == params.status)
+            st = params.status.value if hasattr(params.status, "value") else str(params.status)
+            stmt = stmt.where(Match.status == st)
         if params.min_entry_fee is not None:
             stmt = stmt.where(Match.entry_fee_minor >= params.min_entry_fee)
         if params.max_entry_fee is not None:

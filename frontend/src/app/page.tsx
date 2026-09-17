@@ -14,7 +14,8 @@ export default function HomePage() {
     const fetchMatches = async () => {
       const res = await apiRequest<MatchCardData[]>("/matches?limit=4");
       if (res.success && res.data) {
-        setFeaturedMatches(res.data);
+        const list = Array.isArray(res.data) ? res.data : ((res.data as any)?.matches || []);
+        setFeaturedMatches(list);
       }
       setLoading(false);
     };

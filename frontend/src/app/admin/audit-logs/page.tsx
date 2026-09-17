@@ -18,7 +18,7 @@ export default function AdminAuditLogsPage() {
     try {
       const res = await api.getAdminAuditLogs({ limit: 100 });
       if (res.success && res.data) {
-        setLogs(res.data.logs || []);
+        setLogs(Array.isArray(res.data) ? res.data : (res.data.logs || []));
       }
     } catch (err: any) {
       console.error(err);

@@ -19,7 +19,7 @@ export default function AdminDisputesPage() {
     try {
       const res = await api.getAdminDisputes({ limit: 50 });
       if (res.success && res.data) {
-        setDisputes(res.data.disputes || []);
+        setDisputes(Array.isArray(res.data) ? res.data : (res.data.disputes || []));
       }
     } catch (err: any) {
       console.error(err);

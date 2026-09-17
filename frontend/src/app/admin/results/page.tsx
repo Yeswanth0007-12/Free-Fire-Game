@@ -27,8 +27,9 @@ export default function AdminResultsPage() {
     try {
       const res = await api.getMatches({ limit: 50 });
       if (res.success && res.data) {
+        const rawList = Array.isArray(res.data) ? res.data : (res.data.matches || []);
         // Filter matches that are in result stages or live
-        const eligible = (res.data.matches || []).filter((m: any) =>
+        const eligible = rawList.filter((m: any) =>
           ["IN_PROGRESS", "AWAITING_RESULT", "RESULT_SUBMITTED", "UNDER_REVIEW"].includes(m.status)
         );
         setMatches(eligible);

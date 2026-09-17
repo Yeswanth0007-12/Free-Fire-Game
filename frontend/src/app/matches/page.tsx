@@ -21,7 +21,8 @@ export default function MatchesPage() {
 
     const res = await apiRequest<MatchCardData[]>(query);
     if (res.success && res.data) {
-      setMatches(res.data);
+      const list = Array.isArray(res.data) ? res.data : ((res.data as any)?.matches || []);
+      setMatches(list);
     }
     setLoading(false);
   };

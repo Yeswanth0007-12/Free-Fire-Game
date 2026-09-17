@@ -20,7 +20,7 @@ export default function AdminUsersPage() {
     try {
       const res = await api.getAdminUsers({ limit: 100, search: search || undefined });
       if (res.success && res.data) {
-        setUsers(res.data.users || []);
+        setUsers(Array.isArray(res.data) ? res.data : (res.data.users || []));
       }
     } catch (err: any) {
       console.error(err);
