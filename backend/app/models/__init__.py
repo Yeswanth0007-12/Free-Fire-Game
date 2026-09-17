@@ -1,8 +1,10 @@
 from app.core.database import Base
 from app.models.user import User, UserRole, UserStatus
 from app.models.profile import PlayerProfile
+from app.models.gaming_identity import GamingIdentity, GamingIdentityStatus
 from app.models.game import Game, GameMode
-from app.models.match import Match, MatchStatus, ResultStatus, SettlementStatus, TeamAssignmentMode
+from app.models.match import Match, MatchStatus, ResultStatus, SettlementStatus, TeamAssignmentMode, RoomReleaseStatus, MatchHealthState
+from app.models.slot import MatchSlot, SlotStatus
 from app.models.team import Team, TeamMember
 from app.models.registration import MatchRegistration, RegistrationStatus
 from app.models.wallet import Wallet, WalletTransaction, TransactionType, TransactionDirection, TransactionStatus
@@ -19,13 +21,19 @@ __all__ = [
     "UserRole",
     "UserStatus",
     "PlayerProfile",
+    "GamingIdentity",
+    "GamingIdentityStatus",
     "Game",
     "GameMode",
     "Match",
     "MatchStatus",
     "ResultStatus",
     "SettlementStatus",
+    "RoomReleaseStatus",
+    "MatchHealthState",
     "TeamAssignmentMode",
+    "MatchSlot",
+    "SlotStatus",
     "Team",
     "TeamMember",
     "MatchRegistration",

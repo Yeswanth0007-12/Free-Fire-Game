@@ -76,11 +76,27 @@ class Settings(BaseSettings):
             return [str(i).strip().rstrip("/") for i in v if i]
         return v
 
-    # Feature Flags & Compliance
+    # Firebase Authentication & Meta
+    FIREBASE_PROJECT_ID: str = "ignite-ff-tournaments"
+    FIREBASE_CLIENT_EMAIL: str = ""
+    FIREBASE_PRIVATE_KEY: str = ""
+    FIREBASE_AUTH_MOCK: bool = True
+    FACEBOOK_APP_ID: str = ""
+    FACEBOOK_APP_SECRET: str = ""
+
+    # Feature Flags & Compliance (Section 92)
     REAL_MONEY_ENABLED: bool = False
     WITHDRAWALS_ENABLED: bool = False
     PUBLIC_LAUNCH_ENABLED: bool = False
     MATCH_JOINING_ENABLED: bool = True
+    PAYMENTS_ENABLED: bool = True
+    UID_VERIFICATION_ENABLED: bool = True
+    ROOM_RELEASE_ENABLED: bool = True
+    RESULT_VERIFICATION_ENABLED: bool = True
+    PUSH_NOTIFICATIONS_ENABLED: bool = True
+    FORCE_UPDATE_ENABLED: bool = False
+    MINIMUM_APP_VERSION: str = "1.0.0"
+    LATEST_APP_VERSION: str = "1.0.0"
     DISPUTES_ENABLED: bool = True
     LEADERBOARD_ENABLED: bool = True
     NOTIFICATIONS_ENABLED: bool = True

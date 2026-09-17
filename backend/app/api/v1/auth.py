@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.schemas.common import ApiResponse
-from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, RefreshTokenRequest
+from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, RefreshTokenRequest, FirebaseAuthRequest
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -18,6 +18,12 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     tokens = await AuthService.login(db, req)
     return ApiResponse.ok(data=tokens, message="Authentication successful")
+
+
+@router.post("/firebase", response_model=ApiResponse[TokenResponse])
+async def firebase_auth(req: FirebaseAuthRequest, db: AsyncSession = Depends(get_db)):
+    tokens = await AuthService.authenticate_firebase(db, req)
+    return ApiResponse.ok(data=tokens, message="Firebase authentication successful")
 
 
 @router.post("/refresh", response_model=ApiResponse[TokenResponse])

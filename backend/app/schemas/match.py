@@ -82,6 +82,32 @@ class RoomCredentialsResponse(BaseModel):
     message: str
 
 
+class SlotResponse(BaseModel):
+    id: str
+    slot_number: int
+    team_id: Optional[str] = None
+    status: str
+    is_my_slot: Optional[bool] = False
+    reserved_until: Optional[datetime] = None
+    confirmed_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SlotJoinRequest(BaseModel):
+    slot_number: int = Field(gt=0, description="Slot number to reserve (1 to max_slots)")
+    gaming_identity_id: Optional[str] = None
+
+
+class MatchSlotsSummaryResponse(BaseModel):
+    match_id: str
+    max_slots: int
+    available_slots: int
+    reserved_slots: int
+    confirmed_slots: int
+    slots: List[SlotResponse]
+
+
 class MatchFilterParams(BaseModel):
     mode: Optional[str] = None
     format: Optional[str] = None

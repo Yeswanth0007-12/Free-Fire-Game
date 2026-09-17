@@ -59,31 +59,19 @@ async def update_match(
     current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Match).where(Match.id == match_id).with_for_update()
-    match = (await db.execute(stmt)).scalar_one_or_none()
-    if not match:
-        raise EntityNotFoundException("Match", match_id)
-
-    if req.map_name:
-        match.map_name = req.map_name
-    if req.registration_close_at:
-        match.registration_close_at = req.registration_close_at
-    if req.match_start_at:
-        match.match_start_at = req.match_start_at
-    if req.room_release_at:
-        match.room_release_at = req.room_release_at
-    if req.rules_text:
-        match.rules_text = req.rules_text
-    if req.status:
-        match.status = req.status
-
-    await db.flush()
+    match = await MatchService.admin_update_match(
+        db=db,
+        match_id=match_id,
+        req=req,
+        admin_id=current_user.id
+    )
     await AdminService.log_action(
         db=db,
         actor_user_id=current_user.id,
         action="ADMIN_UPDATED_MATCH",
         target_entity_type="MATCH",
-        target_entity_id=match.id
+        target_entity_id=match.id,
+        after_state={"status": match.status, "has_room_id": bool(match.room_id_encrypted)}
     )
     return ApiResponse.ok(data=MatchResponse.model_validate(match), message="Match updated successfully")
 

@@ -15,6 +15,7 @@ class RegistrationResponse(BaseModel):
     id: str
     match_id: str
     user_id: str
+    gaming_identity_id: Optional[str] = None
     team_id: Optional[str] = None
     status: RegistrationStatus
     slot_number: int
@@ -24,3 +25,9 @@ class RegistrationResponse(BaseModel):
     match: Optional[MatchResponse] = None
     player_name: Optional[str] = None
     free_fire_uid: Optional[str] = None
+
+
+class SlotReservationResponse(BaseModel):
+    registration: RegistrationResponse
+    razorpay_order: Optional[dict] = None
+    message: str

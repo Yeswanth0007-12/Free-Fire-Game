@@ -92,8 +92,24 @@ class PaymentService:
             reg_stmt = select(MatchRegistration).where(MatchRegistration.id == payment.registration_id).with_for_update()
             reg = (await db.execute(reg_stmt)).scalar_one_or_none()
             if reg and reg.status == RegistrationStatus.RESERVED:
+                now = datetime.now(timezone.utc)
                 reg.status = RegistrationStatus.CONFIRMED
+                reg.confirmed_at = now
                 reg.payment_id = payment.id
+
+                # Update slot
+                from app.models.slot import MatchSlot, SlotStatus
+                slot_stmt = select(MatchSlot).where(
+                    and_(
+                        MatchSlot.match_id == reg.match_id,
+                        MatchSlot.slot_number == reg.slot_number
+                    )
+                ).with_for_update()
+                slot = (await db.execute(slot_stmt)).scalar_one_or_none()
+                if slot:
+                    slot.status = SlotStatus.CONFIRMED.value
+                    slot.confirmed_at = now
+                    slot.reserved_until = None
 
                 # Increment match players
                 match_stmt = select(Match).where(Match.id == reg.match_id).with_for_update()
@@ -104,6 +120,15 @@ class PaymentService:
                         match.status = MatchStatus.FULL
                     await MatchService._assign_team(db, match, reg, user_id)
                 await db.flush()
+
+                # Broadcast real-time slot confirmation
+                from app.services.websocket_manager import ws_manager
+                await ws_manager.broadcast_match_event(reg.match_id, "SLOT_CONFIRMED", {
+                    "match_id": reg.match_id,
+                    "slot_number": reg.slot_number,
+                    "status": "CONFIRMED",
+                    "current_players": match.current_players if match else 0
+                })
         else:
             # Wallet deposit flow
             await WalletService.post_transaction(
@@ -119,6 +144,43 @@ class PaymentService:
             )
 
         return payment
+
+    @staticmethod
+    async def create_razorpay_order(
+        db: AsyncSession,
+        user_id: str,
+        match_id: str,
+        registration_id: str,
+        amount_minor: int
+    ) -> Dict[str, Any]:
+        rp_order = await razorpay_client.create_order(
+            amount_minor=amount_minor,
+            currency="INR",
+            receipt=f"reg_{registration_id[:8]}",
+            notes={"user_id": user_id, "match_id": match_id, "registration_id": registration_id}
+        )
+
+        payment = Payment(
+            user_id=user_id,
+            match_id=match_id,
+            registration_id=registration_id,
+            provider="RAZORPAY",
+            provider_order_id=rp_order["id"],
+            amount_minor=amount_minor,
+            currency="INR",
+            status=PaymentStatus.CREATED,
+            notes=rp_order.get("notes", {})
+        )
+        db.add(payment)
+        await db.flush()
+
+        return {
+            "payment_id": payment.id,
+            "order_id": rp_order["id"],
+            "amount_minor": amount_minor,
+            "currency": "INR",
+            "razorpay_key_id": settings.RAZORPAY_KEY_ID
+        }
 
     @staticmethod
     async def process_webhook(
@@ -163,6 +225,7 @@ class PaymentService:
                 p_stmt = select(Payment).where(Payment.provider_order_id == order_id).with_for_update()
                 payment = (await db.execute(p_stmt)).scalar_one_or_none()
                 if payment and payment.status != PaymentStatus.SUCCESS:
+                    now = datetime.now(timezone.utc)
                     payment.status = PaymentStatus.SUCCESS
                     payment.provider_payment_id = payment_id
                     await db.flush()
@@ -172,7 +235,22 @@ class PaymentService:
                         reg = (await db.execute(reg_stmt)).scalar_one_or_none()
                         if reg and reg.status == RegistrationStatus.RESERVED:
                             reg.status = RegistrationStatus.CONFIRMED
+                            reg.confirmed_at = now
                             reg.payment_id = payment.id
+
+                            from app.models.slot import MatchSlot, SlotStatus
+                            slot_stmt = select(MatchSlot).where(
+                                and_(
+                                    MatchSlot.match_id == reg.match_id,
+                                    MatchSlot.slot_number == reg.slot_number
+                                )
+                            ).with_for_update()
+                            slot = (await db.execute(slot_stmt)).scalar_one_or_none()
+                            if slot:
+                                slot.status = SlotStatus.CONFIRMED.value
+                                slot.confirmed_at = now
+                                slot.reserved_until = None
+
                             match_stmt = select(Match).where(Match.id == reg.match_id).with_for_update()
                             match = (await db.execute(match_stmt)).scalar_one_or_none()
                             if match:

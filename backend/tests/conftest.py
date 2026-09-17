@@ -13,8 +13,8 @@ from app.models.wallet import Wallet
 from app.models.game import Game, GameMode
 from app.main import app
 
-# Test database in-memory / local test db
-TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
+# Test database shared file
+TEST_DB_URL = "sqlite+aiosqlite:///./test_runner.db"
 
 test_engine = create_async_engine(
     TEST_DB_URL,

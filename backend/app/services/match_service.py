@@ -12,14 +12,25 @@ from app.core.exceptions import (
     RoomLockedException,
     InvalidStateTransitionException
 )
+from fastapi import HTTPException, status
 from app.core.security import encrypt_room_credential, decrypt_room_credential
-from app.models.match import Match, MatchStatus, ResultStatus, SettlementStatus, TeamAssignmentMode
+from app.models.match import Match, MatchStatus, ResultStatus, SettlementStatus, TeamAssignmentMode, RoomReleaseStatus, MatchHealthState
+from app.models.slot import MatchSlot, SlotStatus
+from app.models.gaming_identity import GamingIdentity, GamingIdentityStatus
 from app.models.game import Game, GameMode
 from app.models.registration import MatchRegistration, RegistrationStatus
 from app.models.team import Team, TeamMember
 from app.models.profile import PlayerProfile
 from app.models.wallet import TransactionType, TransactionDirection
-from app.schemas.match import MatchCreateRequest, MatchUpdateRequest, MatchFilterParams, RoomCredentialsResponse
+from app.schemas.match import (
+    MatchCreateRequest,
+    MatchUpdateRequest,
+    MatchFilterParams,
+    RoomCredentialsResponse,
+    SlotResponse,
+    SlotJoinRequest,
+    MatchSlotsSummaryResponse
+)
 from app.services.wallet_service import WalletService
 
 
@@ -89,6 +100,7 @@ class MatchService:
         await db.flush()
 
         # Initialize default teams if mode requires teams
+        teams_list = []
         if mode.requires_teams and req.max_teams > 0:
             for i in range(1, req.max_teams + 1):
                 team_name = f"Team {'Alpha' if i == 1 else 'Bravo' if i == 2 else f'Squad {i}'}"
@@ -99,7 +111,35 @@ class MatchService:
                     status="ACTIVE"
                 )
                 db.add(team)
+                teams_list.append(team)
             await db.flush()
+
+        # Initialize explicit MatchSlots (Section 54)
+        slots_per_team = req.max_players // max(len(teams_list), 1) if teams_list else req.max_players
+        for slot_idx in range(1, req.max_players + 1):
+            assigned_team_id = None
+            if teams_list:
+                team_idx = min((slot_idx - 1) // max(slots_per_team, 1), len(teams_list) - 1)
+                assigned_team_id = teams_list[team_idx].id
+            slot = MatchSlot(
+                match_id=match.id,
+                slot_number=slot_idx,
+                team_id=assigned_team_id,
+                status=SlotStatus.AVAILABLE.value
+            )
+            db.add(slot)
+        await db.flush()
+
+        # Broadcast MATCH_CREATED event
+        from app.services.websocket_manager import ws_manager
+        await ws_manager.broadcast_global("MATCH_CREATED", {
+            "match_id": match.id,
+            "public_match_code": match.public_match_code,
+            "mode": mode.name,
+            "entry_fee_minor": match.entry_fee_minor,
+            "prize_pool_minor": match.prize_pool_minor,
+            "match_start_at": match.match_start_at.isoformat() if match.match_start_at else None
+        })
 
         return match
 
@@ -389,4 +429,332 @@ class MatchService:
             r.status = RegistrationStatus.REFUNDED
 
         await db.flush()
+        return match
+
+    @staticmethod
+    async def get_match_slots(db: AsyncSession, match_id: str, current_user_id: Optional[str] = None) -> MatchSlotsSummaryResponse:
+        now = datetime.now(timezone.utc)
+        
+        # Auto-release expired reservations (Section 14 & 27)
+        expired_stmt = select(MatchSlot).where(
+            and_(
+                MatchSlot.match_id == match_id,
+                MatchSlot.status == SlotStatus.RESERVED.value,
+                MatchSlot.reserved_until < now
+            )
+        )
+        expired_slots = list((await db.execute(expired_stmt)).scalars().all())
+        for exp_slot in expired_slots:
+            exp_slot.status = SlotStatus.AVAILABLE.value
+            exp_slot.registration_id = None
+            exp_slot.reserved_until = None
+        if expired_slots:
+            await db.flush()
+
+        stmt = select(MatchSlot).where(MatchSlot.match_id == match_id).order_by(MatchSlot.slot_number.asc())
+        slots = list((await db.execute(stmt)).scalars().all())
+
+        # Check which slot is owned by current user
+        my_reg_ids = set()
+        if current_user_id:
+            my_reg_stmt = select(MatchRegistration.id).where(
+                and_(
+                    MatchRegistration.match_id == match_id,
+                    MatchRegistration.user_id == current_user_id,
+                    MatchRegistration.status.in_([RegistrationStatus.CONFIRMED, RegistrationStatus.RESERVED])
+                )
+            )
+            my_reg_ids = set((await db.execute(my_reg_stmt)).scalars().all())
+
+        slot_responses = []
+        avail = 0
+        res = 0
+        conf = 0
+        for s in slots:
+            is_mine = s.registration_id in my_reg_ids if s.registration_id else False
+            if s.status == SlotStatus.AVAILABLE.value:
+                avail += 1
+            elif s.status == SlotStatus.RESERVED.value:
+                res += 1
+            elif s.status == SlotStatus.CONFIRMED.value:
+                conf += 1
+
+            slot_responses.append(SlotResponse(
+                id=s.id,
+                slot_number=s.slot_number,
+                team_id=s.team_id,
+                status=s.status,
+                is_my_slot=is_mine,
+                reserved_until=s.reserved_until,
+                confirmed_at=s.confirmed_at
+            ))
+
+        return MatchSlotsSummaryResponse(
+            match_id=match_id,
+            max_slots=len(slots),
+            available_slots=avail,
+            reserved_slots=res,
+            confirmed_slots=conf,
+            slots=slot_responses
+        )
+
+    @staticmethod
+    async def reserve_slot(
+        db: AsyncSession,
+        match_id: str,
+        user_id: str,
+        slot_number: int,
+        gaming_identity_id: Optional[str] = None
+    ) -> Tuple[MatchRegistration, Optional[Dict[str, Any]]]:
+        # 1. Verify player has a verified gaming identity (Section 11)
+        identity = None
+        if gaming_identity_id:
+            ident_stmt = select(GamingIdentity).where(
+                and_(
+                    GamingIdentity.id == gaming_identity_id,
+                    GamingIdentity.user_id == user_id,
+                    GamingIdentity.status == GamingIdentityStatus.VERIFIED.value
+                )
+            )
+            identity = (await db.execute(ident_stmt)).scalar_one_or_none()
+        else:
+            ident_stmt = select(GamingIdentity).where(
+                and_(
+                    GamingIdentity.user_id == user_id,
+                    GamingIdentity.status == GamingIdentityStatus.VERIFIED.value
+                )
+            ).order_by(GamingIdentity.created_at.desc())
+            identity = (await db.execute(ident_stmt)).scalar_one_or_none()
+
+        if not identity:
+            # Check user profile fallback for backward compatibility & seed accounts
+            prof_stmt = select(PlayerProfile).where(PlayerProfile.user_id == user_id)
+            profile = (await db.execute(prof_stmt)).scalar_one_or_none()
+            if not profile or not profile.free_fire_uid:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Verify your Free Fire identity before joining paid matches."
+                )
+
+        # 2. Concurrency Lock: Lock match row and slot row (Section 13)
+        match_stmt = select(Match).where(Match.id == match_id).with_for_update()
+        match = (await db.execute(match_stmt)).scalar_one_or_none()
+        if not match:
+            raise EntityNotFoundException("Match", match_id)
+
+        now = datetime.now(timezone.utc)
+        close_at = match.registration_close_at
+        if close_at.tzinfo is None:
+            close_at = close_at.replace(tzinfo=timezone.utc)
+        if now >= close_at:
+            raise RegistrationClosedException("Registration deadline has passed")
+        if match.status not in (MatchStatus.REGISTRATION_OPEN, MatchStatus.SCHEDULED):
+            raise RegistrationClosedException(f"Match status is {match.status}")
+
+        # Check user isn't already registered
+        existing_stmt = select(MatchRegistration).where(
+            and_(
+                MatchRegistration.match_id == match_id,
+                MatchRegistration.user_id == user_id,
+                MatchRegistration.status.in_([RegistrationStatus.CONFIRMED, RegistrationStatus.RESERVED])
+            )
+        )
+        if (await db.execute(existing_stmt)).scalar_one_or_none():
+            raise AlreadyRegisteredException("You are already registered for this match")
+
+        # Lock specific slot row
+        slot_stmt = select(MatchSlot).where(
+            and_(
+                MatchSlot.match_id == match_id,
+                MatchSlot.slot_number == slot_number
+            )
+        ).with_for_update()
+        slot = (await db.execute(slot_stmt)).scalar_one_or_none()
+        if not slot:
+            raise EntityNotFoundException(f"Slot {slot_number} in Match", match_id)
+
+        # Check availability
+        is_available = slot.status == SlotStatus.AVAILABLE.value or (
+            slot.status == SlotStatus.RESERVED.value and slot.reserved_until and slot.reserved_until < now
+        )
+        if not is_available:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="SLOT NO LONGER AVAILABLE."
+            )
+
+        # 3. Reserve slot for 5 minutes (Section 14)
+        reserved_until = now + timedelta(minutes=5)
+        reg = MatchRegistration(
+            match_id=match.id,
+            user_id=user_id,
+            gaming_identity_id=identity.id if identity else None,
+            slot_number=slot_number,
+            team_id=slot.team_id,
+            status=RegistrationStatus.RESERVED.value,
+            reserved_until=reserved_until,
+            entry_fee_minor=match.entry_fee_minor,
+            registration_source="MOBILE_APP"
+        )
+        
+        from sqlalchemy.exc import IntegrityError
+        try:
+            db.add(reg)
+            await db.flush()
+
+            slot.status = SlotStatus.RESERVED.value
+            slot.registration_id = reg.id
+            slot.reserved_until = reserved_until
+            await db.flush()
+        except IntegrityError:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="SLOT NO LONGER AVAILABLE."
+            )
+
+        # Auto-assign team member if team is assigned
+        if slot.team_id:
+            tm = TeamMember(
+                team_id=slot.team_id,
+                registration_id=reg.id,
+                user_id=user_id
+            )
+            db.add(tm)
+            await db.flush()
+
+        # 4. Create Razorpay order if entry fee > 0 (Section 16)
+        razorpay_order = None
+        if match.entry_fee_minor > 0:
+            from app.services.payment_service import PaymentService
+            razorpay_order = await PaymentService.create_razorpay_order(
+                db=db,
+                user_id=user_id,
+                match_id=match.id,
+                registration_id=reg.id,
+                amount_minor=match.entry_fee_minor
+            )
+
+        # 5. Broadcast real-time slot update (Section 29)
+        from app.services.websocket_manager import ws_manager
+        await ws_manager.broadcast_match_event(match.id, "SLOT_RESERVED", {
+            "match_id": match.id,
+            "slot_number": slot_number,
+            "status": "RESERVED",
+            "reserved_until": reserved_until.isoformat()
+        })
+
+        return reg, razorpay_order
+
+    @staticmethod
+    async def confirm_slot_payment(
+        db: AsyncSession,
+        registration_id: str,
+        payment_id: str
+    ) -> MatchRegistration:
+        reg_stmt = select(MatchRegistration).where(MatchRegistration.id == registration_id).with_for_update()
+        reg = (await db.execute(reg_stmt)).scalar_one_or_none()
+        if not reg:
+            raise EntityNotFoundException("Registration", registration_id)
+
+        now = datetime.now(timezone.utc)
+        reg.status = RegistrationStatus.CONFIRMED.value
+        reg.confirmed_at = now
+        reg.payment_id = payment_id
+
+        # Update slot
+        slot_stmt = select(MatchSlot).where(
+            and_(
+                MatchSlot.match_id == reg.match_id,
+                MatchSlot.slot_number == reg.slot_number
+            )
+        ).with_for_update()
+        slot = (await db.execute(slot_stmt)).scalar_one_or_none()
+        if slot:
+            slot.status = SlotStatus.CONFIRMED.value
+            slot.confirmed_at = now
+            slot.reserved_until = None
+
+        # Update match count
+        match_stmt = select(Match).where(Match.id == reg.match_id).with_for_update()
+        match = (await db.execute(match_stmt)).scalar_one_or_none()
+        if match:
+            match.current_players += 1
+            if match.current_players >= match.max_players:
+                match.status = MatchStatus.FULL.value
+
+        await db.flush()
+
+        # Broadcast SLOT_CONFIRMED event
+        from app.services.websocket_manager import ws_manager
+        await ws_manager.broadcast_match_event(reg.match_id, "SLOT_CONFIRMED", {
+            "match_id": reg.match_id,
+            "slot_number": reg.slot_number,
+            "status": "CONFIRMED",
+            "current_players": match.current_players if match else 0,
+            "is_full": (match.current_players >= match.max_players) if match else False
+        })
+
+        return reg
+
+    @staticmethod
+    async def admin_update_match(
+        db: AsyncSession,
+        match_id: str,
+        req: MatchUpdateRequest,
+        admin_id: str
+    ) -> Match:
+        stmt = select(Match).where(Match.id == match_id).with_for_update()
+        match = (await db.execute(stmt)).scalar_one_or_none()
+        if not match:
+            raise EntityNotFoundException("Match", match_id)
+
+        # Update fields safely without recreating match (Section 21, 22, 89)
+        if req.map_name is not None:
+            match.map_name = req.map_name
+        if req.rules_text is not None:
+            match.rules_text = req.rules_text
+        if req.registration_close_at is not None:
+            match.registration_close_at = ensure_utc(req.registration_close_at)
+        if req.match_start_at is not None:
+            match.match_start_at = ensure_utc(req.match_start_at)
+        if req.room_release_at is not None:
+            match.room_release_at = ensure_utc(req.room_release_at)
+        if req.status is not None:
+            match.status = req.status.value if hasattr(req.status, "value") else str(req.status)
+
+        # Secure room credentials update
+        credentials_updated = False
+        if req.room_id is not None:
+            match.room_id_encrypted = encrypt_room_credential(req.room_id)
+            credentials_updated = True
+        if req.room_password is not None:
+            match.room_password_encrypted = encrypt_room_credential(req.room_password)
+            credentials_updated = True
+
+        now = datetime.now(timezone.utc)
+        release_at = match.room_release_at
+        if release_at.tzinfo is None:
+            release_at = release_at.replace(tzinfo=timezone.utc)
+
+        # Check if room should be released now
+        if credentials_updated and match.room_id_encrypted and now >= release_at:
+            match.room_release_status = RoomReleaseStatus.RELEASED.value
+
+        await db.flush()
+
+        from app.services.websocket_manager import ws_manager
+        await ws_manager.broadcast_match_event(match.id, "MATCH_UPDATED", {
+            "match_id": match.id,
+            "status": match.status,
+            "room_credentials_available": bool(match.room_id_encrypted),
+            "room_released": match.room_release_status == RoomReleaseStatus.RELEASED.value
+        })
+
+        if match.room_release_status == RoomReleaseStatus.RELEASED.value:
+            await ws_manager.broadcast_match_event(match.id, "ROOM_RELEASED", {
+                "match_id": match.id,
+                "message": "Room credentials are now available for confirmed players"
+            })
+
         return match

@@ -88,9 +88,10 @@ async def submit_match_result(
 
 
 @router.post("/admin/matches/{match_id}/approve-result", response_model=ApiResponse[MatchResponse])
+@router.post("/admin/matches/{match_id}/approve", response_model=ApiResponse[MatchResponse])
 async def approve_match_result(
     match_id: str,
-    req: ApproveResultRequest,
+    req: Optional[ApproveResultRequest] = None,
     current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db)
 ):

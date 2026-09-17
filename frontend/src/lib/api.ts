@@ -98,6 +98,18 @@ export const api = {
   updateUserRole: (userId: string, role: string) =>
     apiRequest(`/admin/users/${userId}/role`, { method: "PATCH", body: JSON.stringify({ role }) }),
   createMatch: (data: any) => apiRequest("/admin/matches", { method: "POST", body: JSON.stringify(data) }),
+  updateMatch: (matchId: string, data: any) =>
+    apiRequest(`/admin/matches/${matchId}`, { method: "PATCH", body: JSON.stringify(data) }),
+  getAdminHealth: () => apiRequest("/admin/system/health"),
+  getGamingIdentities: (params: any = {}) => {
+    const query = new URLSearchParams();
+    if (params.status) query.append("status", params.status);
+    if (params.limit) query.append("limit", params.limit.toString());
+    const qs = query.toString();
+    return apiRequest(`/gaming-identities/admin/list${qs ? `?${qs}` : ""}`);
+  },
+  verifyGamingIdentity: (identityId: string, status: string, notes?: string) =>
+    apiRequest(`/gaming-identities/admin/${identityId}/verify`, { method: "POST", body: JSON.stringify({ status, notes }) }),
   cancelMatch: (matchId: string, reason?: string) =>
     apiRequest(`/admin/matches/${matchId}/cancel`, { method: "POST", body: JSON.stringify({ reason }) }),
   submitMatchResult: (matchId: string, data: any) =>

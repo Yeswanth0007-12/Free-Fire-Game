@@ -23,7 +23,11 @@ class MatchRegistration(Base):
 
     status = Column(String(20), default=RegistrationStatus.RESERVED.value, nullable=False, index=True)
     slot_number = Column(Integer, nullable=False)
+    gaming_identity_id = Column(String(36), ForeignKey("gaming_identities.id", ondelete="SET NULL"), nullable=True, index=True)
     reserved_until = Column(DateTime(timezone=True), nullable=True)  # expires if unconfirmed
+    confirmed_at = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
+    registration_source = Column(String(50), default="MOBILE_APP", nullable=False)
 
     payment_id = Column(String(36), nullable=True, index=True)
     entry_fee_minor = Column(BigInteger, default=0, nullable=False)
@@ -33,6 +37,8 @@ class MatchRegistration(Base):
 
     match = relationship("Match", back_populates="registrations")
     user = relationship("User", back_populates="registrations")
+    gaming_identity = relationship("GamingIdentity", back_populates="registrations")
+    slot = relationship("MatchSlot", back_populates="registration", uselist=False)
     team_member = relationship("TeamMember", back_populates="registration", uselist=False)
 
     __table_args__ = (

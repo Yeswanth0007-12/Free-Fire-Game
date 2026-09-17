@@ -13,10 +13,13 @@ from app.schemas.match import (
     MatchResponse,
     MatchDetailResponse,
     MatchFilterParams,
-    RoomCredentialsResponse
+    RoomCredentialsResponse,
+    SlotResponse,
+    SlotJoinRequest,
+    MatchSlotsSummaryResponse
 )
 from app.schemas.team import TeamResponse, TeamMemberResponse
-from app.schemas.registration import JoinMatchRequest, RegistrationResponse
+from app.schemas.registration import JoinMatchRequest, RegistrationResponse, SlotReservationResponse
 from app.schemas.game import GameModeResponse
 from app.services.match_service import MatchService
 from app.services.websocket_manager import ws_manager
@@ -121,6 +124,58 @@ async def get_match_teams(
         )
 
     return ApiResponse.ok(data=team_responses)
+
+
+@router.get("/{match_id}/slots", response_model=ApiResponse[MatchSlotsSummaryResponse])
+async def get_match_slots(
+    match_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    summary = await MatchService.get_match_slots(db, match_id)
+    return ApiResponse.ok(data=summary)
+
+
+@router.post("/{match_id}/reserve-slot", response_model=ApiResponse[SlotReservationResponse], status_code=status.HTTP_201_CREATED)
+async def reserve_match_slot(
+    match_id: str,
+    req: SlotJoinRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    reg, razorpay_order = await MatchService.reserve_slot(
+        db=db,
+        match_id=match_id,
+        user_id=current_user.id,
+        slot_number=req.slot_number,
+        gaming_identity_id=req.gaming_identity_id
+    )
+
+    p_stmt = select(PlayerProfile).where(PlayerProfile.user_id == current_user.id)
+    profile = (await db.execute(p_stmt)).scalar_one_or_none()
+
+    reg_data = RegistrationResponse(
+        id=reg.id,
+        match_id=reg.match_id,
+        user_id=reg.user_id,
+        gaming_identity_id=reg.gaming_identity_id,
+        team_id=reg.team_id,
+        status=reg.status,
+        slot_number=reg.slot_number,
+        reserved_until=reg.reserved_until,
+        entry_fee_minor=reg.entry_fee_minor,
+        created_at=reg.created_at,
+        player_name=profile.display_name if profile else "Player",
+        free_fire_uid=profile.free_fire_uid if profile else ""
+    )
+
+    return ApiResponse.ok(
+        data=SlotReservationResponse(
+            registration=reg_data,
+            razorpay_order=razorpay_order,
+            message="Slot temporarily reserved. Please complete payment within 5 minutes to confirm booking."
+        ),
+        message="Slot successfully reserved"
+    )
 
 
 @router.post("/{match_id}/join", response_model=ApiResponse[RegistrationResponse])

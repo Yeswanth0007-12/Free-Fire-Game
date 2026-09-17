@@ -20,6 +20,11 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 
+class FirebaseAuthRequest(BaseModel):
+    id_token: str
+    provider: Optional[str] = "google.com"  # "google.com" or "facebook.com"
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str

@@ -210,6 +210,13 @@ export default function AdminMatchesPage() {
 
                     <td className="py-3 px-4 text-right space-x-2">
                       <Link
+                        href={`/admin/matches/${m.id}/edit`}
+                        className="inline-block px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[11px] font-semibold transition-colors"
+                      >
+                        Edit Room / Match
+                      </Link>
+
+                      <Link
                         href={`/matches/${m.id}`}
                         target="_blank"
                         className="inline-block px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[11px] font-medium transition-colors"

@@ -26,6 +26,7 @@ from app.api.v1.leaderboard import router as leaderboard_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.health import router as health_router
+from app.api.v1.gaming_identities import router as gaming_identities_router, admin_router as admin_gaming_identities_router
 
 
 @asynccontextmanager
@@ -136,6 +137,8 @@ app.include_router(disputes_router, prefix=api_v1_prefix)
 app.include_router(leaderboard_router, prefix=api_v1_prefix)
 app.include_router(notifications_router, prefix=api_v1_prefix)
 app.include_router(admin_router, prefix=api_v1_prefix)
+app.include_router(gaming_identities_router, prefix=api_v1_prefix)
+app.include_router(admin_gaming_identities_router, prefix=api_v1_prefix)
 
 
 # WebSockets for real-time match events

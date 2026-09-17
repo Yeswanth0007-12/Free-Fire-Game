@@ -51,9 +51,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const adminNav = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    { label: "Live System Health", href: "/admin/health", icon: Shield },
     { label: "Matches", href: "/admin/matches", icon: Swords },
     { label: "Create Match", href: "/admin/matches/create", icon: PlusCircle },
     { label: "Result Verification", href: "/admin/results", icon: Trophy },
+    { label: "UID Verification", href: "/admin/gaming-identities", icon: Users },
     { label: "Disputes", href: "/admin/disputes", icon: AlertTriangle },
     { label: "User Accounts", href: "/admin/users", icon: Users },
     { label: "Audit Logs", href: "/admin/audit-logs", icon: FileText },

@@ -112,7 +112,76 @@ class AuthService:
         if not user or user.status != UserStatus.ACTIVE:
             raise AuthenticationFailedException("User not active or does not exist")
 
-        token_payload = {"sub": user.id, "email": user.email, "role": user.role.value}
+        token_payload = {"sub": user.id, "email": user.email, "role": user.role.value if hasattr(user.role, "value") else str(user.role)}
+        access_token = create_access_token(token_payload)
+        refresh_token = create_refresh_token(token_payload)
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer",
+            expires_in=60 * 24 * 60
+        )
+
+    @staticmethod
+    async def authenticate_firebase(db: AsyncSession, req: FirebaseAuthRequest) -> TokenResponse:
+        from app.integrations.firebase_auth import verify_firebase_id_token
+        
+        decoded = verify_firebase_id_token(req.id_token)
+        if not decoded or not decoded.get("email"):
+            raise AuthenticationFailedException("Invalid, expired, or unverified Firebase ID token")
+
+        email = decoded["email"].lower().strip()
+        name = decoded.get("name") or email.split("@")[0]
+        avatar_url = decoded.get("picture")
+
+        # Check existing user
+        stmt = select(User).where(User.email == email)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            # Create user
+            user = User(
+                email=email,
+                password_hash=hash_password(f"oauth_{email}_{decoded.get('uid', '')}"),
+                role=UserRole.PLAYER,
+                status=UserStatus.ACTIVE,
+                is_verified=True,
+                last_login_at=datetime.now(timezone.utc)
+            )
+            db.add(user)
+            await db.flush()
+
+            # Create default profile
+            profile = PlayerProfile(
+                user_id=user.id,
+                display_name=name,
+                avatar_url=avatar_url,
+                free_fire_uid=f"UNLINKED_{user.id[:8]}",
+                free_fire_name=name,
+                preferred_game="Free Fire"
+            )
+            db.add(profile)
+
+            # Create wallet
+            wallet = Wallet(
+                user_id=user.id,
+                currency="INR",
+                available_balance_minor=0,
+                locked_balance_minor=0,
+                winning_balance_minor=0
+            )
+            db.add(wallet)
+            await db.flush()
+        else:
+            if user.status != UserStatus.ACTIVE:
+                raise AuthenticationFailedException(f"Account is {user.status.value.lower()}")
+            user.last_login_at = datetime.now(timezone.utc)
+            await db.flush()
+
+        role_str = user.role.value if hasattr(user.role, "value") else str(user.role)
+        token_payload = {"sub": user.id, "email": user.email, "role": role_str}
         access_token = create_access_token(token_payload)
         refresh_token = create_refresh_token(token_payload)
 

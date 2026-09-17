@@ -45,6 +45,7 @@ class User(Base):
 
     # Relationships
     profile = relationship("PlayerProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    gaming_identities = relationship("GamingIdentity", back_populates="user", cascade="all, delete-orphan", foreign_keys="[GamingIdentity.user_id]")
     wallet = relationship("Wallet", back_populates="user", uselist=False, cascade="all, delete-orphan")
     registrations = relationship("MatchRegistration", back_populates="user")
     disputes = relationship("Dispute", back_populates="user", foreign_keys="[Dispute.user_id]")

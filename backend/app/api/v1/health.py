@@ -34,3 +34,40 @@ async def get_server_time():
             "timestamp_ms": int(now.timestamp() * 1000)
         }
     )
+
+
+@router.get("/admin/system/health")
+async def admin_system_health(db: AsyncSession = Depends(get_db)):
+    """
+    Subsystem operational telemetry (Section 104 & 135):
+    API, Database, Worker, Scheduler, WebSocket, and Payment health.
+    """
+    now = datetime.now(timezone.utc)
+    db_status = "connected"
+    try:
+        await db.execute(text("SELECT 1"))
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    from app.workers.scheduler import worker_telemetry
+    from app.services.websocket_manager import ws_manager
+    from app.core.config import settings
+
+    return ApiResponse.ok(
+        data={
+            "status": "HEALTHY" if db_status == "connected" and worker_telemetry.get("status") == "RUNNING" else "DEGRADED",
+            "timestamp": now.isoformat(),
+            "api": {"status": "online", "environment": settings.APP_ENV, "version": "1.0.0"},
+            "database": {"status": db_status, "driver": "sqlite" if settings.DATABASE_URL.startswith("sqlite") else "postgres"},
+            "scheduler": worker_telemetry,
+            "websocket": {
+                "active_match_rooms": len(ws_manager.match_rooms),
+                "global_listeners": len(ws_manager.global_connections)
+            },
+            "payment_service": {
+                "provider": "Razorpay",
+                "configured": bool(settings.RAZORPAY_KEY_ID),
+                "test_mode": settings.PAYMENT_MODE_SIMULATION
+            }
+        }
+    )

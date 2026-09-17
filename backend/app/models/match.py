@@ -40,6 +40,18 @@ class SettlementStatus(str, Enum):
     REFUNDED = "REFUNDED"
 
 
+class RoomReleaseStatus(str, Enum):
+    PENDING = "PENDING"
+    RELEASED = "RELEASED"
+
+
+class MatchHealthState(str, Enum):
+    HEALTHY = "HEALTHY"
+    WARNING = "WARNING"
+    ACTION_REQUIRED = "ACTION_REQUIRED"
+    ERROR = "ERROR"
+
+
 class TeamAssignmentMode(str, Enum):
     AUTO = "AUTO"
     MANUAL = "MANUAL"
@@ -80,6 +92,8 @@ class Match(Base):
     status = Column(String(30), default=MatchStatus.SCHEDULED.value, nullable=False, index=True)
     result_status = Column(String(20), default=ResultStatus.PENDING.value, nullable=False, index=True)
     settlement_status = Column(String(20), default=SettlementStatus.UNSETTLED.value, nullable=False, index=True)
+    room_release_status = Column(String(20), default=RoomReleaseStatus.PENDING.value, nullable=False, index=True)
+    health_state = Column(String(20), default=MatchHealthState.HEALTHY.value, nullable=False, index=True)
 
     rules_text = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -89,6 +103,7 @@ class Match(Base):
     game = relationship("Game", back_populates="matches", lazy="selectin")
     mode = relationship("GameMode", back_populates="matches", lazy="selectin")
     host = relationship("User", foreign_keys=[host_id])
+    slots = relationship("MatchSlot", back_populates="match", cascade="all, delete-orphan", order_by="MatchSlot.slot_number")
     registrations = relationship("MatchRegistration", back_populates="match", cascade="all, delete-orphan")
     teams = relationship("Team", back_populates="match", cascade="all, delete-orphan")
     result = relationship("MatchResult", back_populates="match", uselist=False, cascade="all, delete-orphan")

@@ -9,30 +9,35 @@ Built with **FastAPI**, **SQLAlchemy 2.0**, **PostgreSQL (Supabase)**, **Redis**
 ## Architecture Overview
 
 ```
-[ Next.js 16+ PWA Frontend ] ──HTTP/WS──> [ FastAPI Modular Backend ]
-                                                 │
-                                                 ├──> [ Supabase / PostgreSQL (Double-Entry Ledger) ]
-                                                 ├──> [ Redis (Broker & Cache) ]
-                                                 ├──> [ Background Lifecycle Worker ]
-                                                 └──> [ Razorpay Payment Gateway ]
+[ Player Mobile App (React Native/Expo) ] ──HTTPS/WS──┐
+[ Admin Web Panel (Next.js 16+) ] ─────────HTTPS/WS──┼──> [ FastAPI Authoritative Backend ]
+[ Marketing Landing Website ] ─────────────HTTPS/WS──┘              │
+                                                                    ├──> [ PostgreSQL / Supabase Ledger ]
+                                                                    ├──> [ Redis (Broker & Cache) ]
+                                                                    ├──> [ Autonomous Background Tracker ]
+                                                                    ├──> [ Firebase Admin SDK (Google/FB) ]
+                                                                    └──> [ Razorpay Payment Gateway ]
 ```
 
 ### Core Tenets & Safeguards
 1. **Legitimate Tournament Management**: No game memory reading, packet manipulation, injection, or hacks.
-2. **No Normal Player Screenshot Uploads (V1)**: Result entry is strictly controlled via structured Admin/Host entry with an extensible `ResultProvider` interface for future automated API sources.
-3. **Double-Entry Financial Ledger**: 
+2. **Authoritative Backend**: Mobile and web apps are thin clients; the backend is strictly authoritative for balances, slot locks, room passwords, and results.
+3. **No Player Screenshot Uploads (V1)**: Result verification is structured and operator-driven with immutable audit logs and duplicate settlement locks.
+4. **Double-Entry Financial Ledger**: 
    - All currency stored in **integer minor units (paise)**. ₹50.00 = `5000` paise.
    - Non-negative balance constraints enforced at database level.
    - Every balance modification generates an immutable `WalletTransaction` with unique idempotency keys (`MATCH_PRIZE:{match_id}:{user_id}`, `MATCH_ENTRY:{match_id}:{user_id}`).
    - Double-settlement prevention: Repeated approvals of the same result will never disburse duplicate prize pools.
-4. **Concurrency & Slot Locking**:
-   - `SELECT FOR UPDATE` ensures simultaneous registrations cannot exceed match slot capacity.
+5. **Concurrency & Slot Locking**:
+   - `SELECT FOR UPDATE` and unique database constraints ensure simultaneous registrations cannot exceed match slot capacity.
    - Temporary 5-minute reservation timeout releases unconfirmed slots automatically.
-5. **Encrypted Room Credentials**:
+6. **Encrypted Room Credentials**:
    - Free Fire Custom Room ID & Password are encrypted at rest with AES-256-GCM.
    - Credentials remain locked until the configured `room_release_at` timestamp and are only accessible to confirmed participants.
-6. **Regulatory Feature Flags**:
-   - `REAL_MONEY_ENABLED=false` and `WITHDRAWALS_ENABLED=false` provide a safe sandbox by default for compliance and licensing verification.
+7. **Free Fire UID Management**:
+   - Explicit `GamingIdentity` model decoupled from platform user identity.
+   - Guard against duplicate UID reuse across different accounts (`FREE_FIRE_UID_ALREADY_LINKED`).
+   - Admin-verified status workflow prevents unauthorized UID changes.
 
 ---
 
@@ -40,28 +45,26 @@ Built with **FastAPI**, **SQLAlchemy 2.0**, **PostgreSQL (Supabase)**, **Redis**
 
 ```
 d:/Free Fire/
+├── apps/
+│   ├── mobile/              # React Native + Expo + TypeScript Mobile App (Android/iOS)
+│   │   ├── app/             # Expo Router screens (Tabs, Auth, Match Lobby, Slot Booking, Wallet)
+│   │   ├── src/services/    # Centralized Mobile API Client with SecureStore
+│   │   └── src/store/       # Zustand lightweight session & auth store
+│   ├── admin/               # Admin Web Panel (Dedicated Control Center)
+│   └── website/             # Public Marketing & Android APK Download Portal
 ├── backend/
 │   ├── app/
-│   │   ├── api/v1/          # Modular API routes (auth, games, matches, wallet, payments, admin, etc.)
+│   │   ├── api/v1/          # Modular API routes (auth, gaming-identities, matches, wallet, admin)
 │   │   ├── core/            # Config, security (Argon2id, AES Fernet, JWT), database, exceptions
-│   │   ├── models/          # SQLAlchemy 2.0 models (User, Match, Wallet, Ledger, Dispute, etc.)
+│   │   ├── models/          # SQLAlchemy 2.0 models (User, GamingIdentity, MatchSlot, Ledger, etc.)
 │   │   ├── schemas/         # Pydantic v2 validation schemas
 │   │   ├── services/        # Business logic (wallet, settlement, payment, matchmaking, results)
-│   │   └── workers/         # Background scheduler (match lifecycles & slot expirations)
-│   ├── alembic/             # Database migrations
-│   ├── tests/               # Pytest suite (concurrency, payments, settlements, RBAC)
-│   ├── Dockerfile           # Multi-stage production container
-│   ├── requirements.txt
+│   │   └── workers/         # Background scheduler (room release & slot reservation expiry)
+│   ├── tests/               # Pytest suite (concurrency race, double-settlement, room cryptography)
 │   └── seed.py              # Development seed script
-├── frontend/
-│   ├── src/
-│   │   ├── app/             # Next.js 16+ App Router pages (Player & Admin dashboards)
-│   │   ├── components/      # UI components (MatchCard, Countdown, RoomCard, WalletModal, Nav)
-│   │   └── lib/             # Typed API client, auth context, currency formatters
-│   ├── public/              # PWA manifest and icons
-│   ├── Dockerfile           # Next.js standalone runner container
-│   ├── package.json
-│   └── tailwind.config.js
+├── packages/
+│   └── types/               # Shared TypeScript domain contracts
+├── frontend/                # Next.js web application (Landing + Admin Control Center)
 ├── docker-compose.yml       # Orchestrates Postgres, Redis, Backend, Worker, Frontend
 └── .env.example             # Documented environment variables
 ```

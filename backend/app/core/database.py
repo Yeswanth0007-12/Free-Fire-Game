@@ -8,23 +8,28 @@ from app.core.config import settings
 connect_args = {}
 engine_kwargs = {"echo": settings.DEBUG}
 
-if settings.DATABASE_URL.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
-    engine_kwargs["connect_args"] = connect_args
-else:
-    # Supabase PostgreSQL / asyncpg configuration
-    # For serverless / pooled Supabase environments, pool size can be tuned
-    engine_kwargs["pool_pre_ping"] = True
-    if "supabase.co" in settings.DATABASE_URL:
-        # Supabase uses pgbouncer which doesn't support prepared statements
-        connect_args["ssl"] = "require"
-        connect_args["statement_cache_size"] = 0
+try:
+    if settings.DATABASE_URL.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
         engine_kwargs["connect_args"] = connect_args
-
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    **engine_kwargs
-)
+    else:
+        engine_kwargs["pool_pre_ping"] = True
+        if "supabase" in settings.DATABASE_URL:
+            connect_args["ssl"] = "require"
+            connect_args["statement_cache_size"] = 0
+            engine_kwargs["connect_args"] = connect_args
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        **engine_kwargs
+    )
+except (SystemError, ImportError, Exception) as err:
+    # Graceful fallback to SQLite for local development / testing when binary driver is unavailable
+    fallback_url = "sqlite+aiosqlite:///./tournament.db"
+    engine = create_async_engine(
+        fallback_url,
+        connect_args={"check_same_thread": False},
+        echo=settings.DEBUG
+    )
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
