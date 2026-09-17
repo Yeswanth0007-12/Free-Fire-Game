@@ -6,7 +6,7 @@ from app.core.exceptions import AuthenticationFailedException, DuplicateEntityEx
 from app.models.user import User, UserRole, UserStatus
 from app.models.profile import PlayerProfile
 from app.models.wallet import Wallet
-from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, RefreshTokenRequest
+from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, RefreshTokenRequest, FirebaseAuthRequest
 
 
 class AuthService:
