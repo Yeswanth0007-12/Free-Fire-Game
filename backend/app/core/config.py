@@ -96,7 +96,9 @@ class Settings(BaseSettings):
     PUSH_NOTIFICATIONS_ENABLED: bool = True
     FORCE_UPDATE_ENABLED: bool = False
     MINIMUM_APP_VERSION: str = "1.0.0"
-    LATEST_APP_VERSION: str = "1.0.0"
+    LATEST_APP_VERSION: str = "1.0.4"
+    LATEST_VERSION_CODE: int = 5
+    APK_DOWNLOAD_URL: str = "https://github.com/Yeswanth0007-12/Free-Fire-Game/releases/download/v1.0.4/clashiq-v1.0.4.apk"
     DISPUTES_ENABLED: bool = True
     LEADERBOARD_ENABLED: bool = True
     NOTIFICATIONS_ENABLED: bool = True

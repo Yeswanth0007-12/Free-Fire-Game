@@ -27,6 +27,9 @@ from app.api.v1.notifications import router as notifications_router
 from app.api.v1.admin import router as admin_router
 from app.api.v1.health import router as health_router
 from app.api.v1.gaming_identities import router as gaming_identities_router, admin_router as admin_gaming_identities_router
+from app.api.v1.app_info import router as app_info_router
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import status
 
 
 @asynccontextmanager
@@ -139,6 +142,13 @@ app.include_router(notifications_router, prefix=api_v1_prefix)
 app.include_router(admin_router, prefix=api_v1_prefix)
 app.include_router(gaming_identities_router, prefix=api_v1_prefix)
 app.include_router(admin_gaming_identities_router, prefix=api_v1_prefix)
+app.include_router(app_info_router, prefix=api_v1_prefix)
+
+
+@app.get("/download/apk", include_in_schema=True, tags=["App"])
+async def root_download_apk():
+    """Permanent root redirect to the latest ClashIQ Android release APK."""
+    return RedirectResponse(url=settings.APK_DOWNLOAD_URL, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
 # WebSockets for real-time match events

@@ -12,6 +12,8 @@ router = APIRouter(prefix="", tags=["Users"])
 
 
 @router.get("/me", response_model=ApiResponse[UserResponse])
+@router.get("/users/me", response_model=ApiResponse[UserResponse])
+@router.get("/auth/me", response_model=ApiResponse[UserResponse])
 async def get_my_account(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -37,6 +39,9 @@ async def get_my_account(
 
 
 @router.patch("/me/profile", response_model=ApiResponse[PlayerProfileResponse])
+@router.patch("/users/me/profile", response_model=ApiResponse[PlayerProfileResponse])
+@router.put("/me/profile", response_model=ApiResponse[PlayerProfileResponse])
+@router.put("/users/me/profile", response_model=ApiResponse[PlayerProfileResponse])
 async def update_profile(
     req: UpdateProfileRequest,
     current_user: User = Depends(get_current_user),
@@ -44,6 +49,16 @@ async def update_profile(
 ):
     stmt = select(PlayerProfile).where(PlayerProfile.user_id == current_user.id)
     profile = (await db.execute(stmt)).scalar_one_or_none()
+
+    if not profile:
+        profile = PlayerProfile(
+            user_id=current_user.id,
+            display_name=req.display_name.strip() if req.display_name else current_user.email.split("@")[0],
+            free_fire_uid=req.free_fire_uid.strip() if req.free_fire_uid else f"UNLINKED_{current_user.id[:8]}",
+            free_fire_name=req.free_fire_name.strip() if req.free_fire_name else "Player",
+            preferred_game="Free Fire"
+        )
+        db.add(profile)
 
     if req.display_name:
         profile.display_name = req.display_name.strip()

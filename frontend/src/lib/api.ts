@@ -29,6 +29,17 @@ export async function apiRequest<T = any>(
       headers,
     });
 
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return {
+        success: false,
+        error: {
+          code: "INVALID_RESPONSE",
+          message: `Server returned non-JSON response (${res.status} ${res.statusText})`,
+        },
+      };
+    }
+
     const data = await res.json();
     return data;
   } catch (error: any) {
@@ -47,8 +58,11 @@ export const api = {
   // Auth
   register: (data: any) => apiRequest("/auth/register", { method: "POST", body: JSON.stringify(data) }),
   login: (data: any) => apiRequest("/auth/login", { method: "POST", body: JSON.stringify(data) }),
+  authenticateFirebase: (idToken: string) =>
+    apiRequest("/auth/firebase", { method: "POST", body: JSON.stringify({ id_token: idToken }) }),
   getMe: () => apiRequest("/auth/me"),
   updateProfile: (data: any) => apiRequest("/users/me/profile", { method: "PATCH", body: JSON.stringify(data) }),
+  getAppInfo: () => apiRequest("/app/info"),
 
   // Games & Modes
   getGames: () => apiRequest("/games"),
