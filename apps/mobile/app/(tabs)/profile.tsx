@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { 
-  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert 
+  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity 
 } from "react-native";
 import { useRouter } from "expo-router";
 import { User, ShieldCheck, Flame, AlertCircle, LogOut, CheckCircle } from "lucide-react-native";
@@ -49,8 +49,8 @@ export default function ProfileScreen() {
         <View style={styles.avatarBox}>
           <User color="#f59e0b" size={32} />
         </View>
-        <Text style={styles.displayName}>{user?.display_name || "Sathish"}</Text>
-        <Text style={styles.emailText}>{user?.email || "sathish@igniteff.com"}</Text>
+        <Text style={styles.displayName}>{user?.display_name || "Player"}</Text>
+        <Text style={styles.emailText}>{user?.email || "player@clashiq.com"}</Text>
         <View style={styles.roleBadge}>
           <Text style={styles.roleText}>{user?.role || "PLAYER"}</Text>
         </View>

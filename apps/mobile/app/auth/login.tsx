@@ -53,7 +53,7 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Flame color="#f59e0b" size={54} />
-        <Text style={styles.title}>IGNITE FF</Text>
+        <Text style={styles.title}>Clashiq</Text>
         <Text style={styles.subtitle}>COMPETITIVE TOURNAMENT PLATFORM</Text>
       </View>
 

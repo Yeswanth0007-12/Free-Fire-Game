@@ -1,4 +1,4 @@
-// IGNITE FF Mobile Type Definitions
+// Clashiq Mobile Type Definitions
 
 export type MatchStatus =
   | "DRAFT"

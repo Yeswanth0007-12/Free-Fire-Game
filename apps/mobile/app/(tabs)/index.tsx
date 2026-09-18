@@ -37,7 +37,7 @@ export default function HomeScreen() {
           <View>
             <Text style={styles.welcomeLabel}>WELCOME BACK</Text>
             <Text style={styles.userName}>
-              {isAuthenticated ? user?.display_name || "Sathish" : "Guest Player"}
+              {isAuthenticated ? user?.display_name || "Player" : "Guest Player"}
             </Text>
           </View>
           <View style={styles.verifiedBadge}>

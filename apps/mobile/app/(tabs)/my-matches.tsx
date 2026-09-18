@@ -17,8 +17,16 @@ export default function MyMatchesScreen() {
   const { data: myMatches, isLoading, refetch } = useQuery({
     queryKey: ["my-matches", activeTab],
     queryFn: async () => {
-      const res = await mobileApi.getMyMatches();
-      return (res.success && res.data ? (Array.isArray(res.data) ? res.data : res.data.matches || []) : []) as MatchSummary[];
+      const res = await mobileApi.getMyMatches(activeTab);
+      const list = (res.success && res.data ? (Array.isArray(res.data) ? res.data : res.data.matches || []) : []) as MatchSummary[];
+      if (activeTab === "UPCOMING") {
+        return list.filter((m) => ["SCHEDULED", "REGISTRATION_OPEN", "FULL", "REGISTRATION_CLOSED", "DRAFT"].includes(m.status));
+      } else if (activeTab === "LIVE") {
+        return list.filter((m) => ["ROOM_PENDING", "ROOM_READY", "ROOM_RELEASED", "IN_PROGRESS", "AWAITING_RESULT", "RESULT_SUBMITTED", "UNDER_REVIEW"].includes(m.status));
+      } else if (activeTab === "COMPLETED") {
+        return list.filter((m) => ["VERIFIED", "SETTLED", "COMPLETED", "DISPUTED"].includes(m.status));
+      }
+      return list;
     },
   });
 

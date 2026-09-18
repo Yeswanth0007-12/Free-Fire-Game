@@ -19,12 +19,12 @@ export default function TermsPage() {
 
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            Welcome to IGNITE FF. By accessing our platform, registering an account, or entering scheduled tournaments,
+            Welcome to Clashiq. By accessing our platform, registering an account, or entering scheduled tournaments,
             you agree to be bound by these Terms of Service.
           </p>
           <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">1. Platform Nature</h2>
           <p>
-            IGNITE FF is an independent tournament organizer providing scheduled match coordination and prize pool
+            Clashiq is an independent tournament organizer providing scheduled match coordination and prize pool
             management. We are not affiliated with, sponsored by, or endorsed by Garena.
           </p>
           <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">2. Financial Ledger & Wallet Rules</h2>

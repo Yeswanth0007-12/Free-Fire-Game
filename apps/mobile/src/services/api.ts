@@ -6,7 +6,7 @@ const API_BASE_URL =
   Constants.expoConfig?.extra?.apiUrl || 
   (Platform.OS === "android" ? "http://10.0.2.2:8000/api/v1" : "http://localhost:8000/api/v1");
 
-const TOKEN_KEY = "igniteff_auth_token";
+const TOKEN_KEY = "clashiq_auth_token";
 
 export async function getStoredToken(): Promise<string | null> {
   try {
@@ -70,7 +70,7 @@ export async function mobileApiRequest<T = any>(
       success: false,
       error: {
         code: "NETWORK_ERROR",
-        message: error.message || "Failed to reach IGNITE FF game server",
+        message: error.message || "Failed to reach Clashiq game server",
       },
     };
   }
@@ -104,7 +104,7 @@ export const mobileApi = {
     mobileApiRequest(`/matches${status ? `?status=${status}` : ""}`),
   getMatch: (matchId: string) => mobileApiRequest(`/matches/${matchId}`),
   getMyMatches: (status?: string) =>
-    mobileApiRequest(`/matches/my${status ? `?status=${status}` : ""}`),
+    mobileApiRequest(`/my-matches${status ? `?tab=${status}` : ""}`),
   getMatchSlots: (matchId: string) => mobileApiRequest(`/matches/${matchId}/slots`),
 
   // Slot Reservation & Concurrency Lock

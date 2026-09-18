@@ -37,7 +37,11 @@ export default function MatchLobbyScreen() {
   });
 
   const handleCopy = (text: string, label: string) => {
-    // Clipboard.setString(text);
+    try {
+      Clipboard.setString(text);
+    } catch (e) {
+      console.warn("Clipboard copy fallback:", e);
+    }
     setCopiedKey(label);
     setTimeout(() => setCopiedKey(null), 2000);
   };

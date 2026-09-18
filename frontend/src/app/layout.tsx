@@ -8,7 +8,7 @@ import MobileNav from "@/components/MobileNav";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "IGNITE FF - Competitive Free Fire Tournaments & Cash Prize Matches",
+  title: "Clashiq - Competitive Free Fire Tournaments & Cash Prize Matches",
   description: "Join scheduled competitive Free Fire matches (Solo, Lone Wolf, Clash Squad). Play fair, verify results, and win cash prizes credited directly to your secure platform wallet.",
   manifest: "/manifest.json",
   themeColor: "#090d16",

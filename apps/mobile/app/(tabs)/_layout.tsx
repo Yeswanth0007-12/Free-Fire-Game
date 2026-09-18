@@ -1,5 +1,4 @@
 import { Tabs } from "expo-router";
-import { View, Text, StyleSheet } from "react-native";
 import { Flame, Swords, Trophy, Wallet, User } from "lucide-react-native";
 
 export default function TabLayout() {
@@ -24,7 +23,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => <Flame color={color} size={size} />,
-          headerTitle: "IGNITE FF",
+          headerTitle: "Clashiq",
         }}
       />
       <Tabs.Screen

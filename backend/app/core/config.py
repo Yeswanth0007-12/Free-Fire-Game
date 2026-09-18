@@ -77,7 +77,7 @@ class Settings(BaseSettings):
         return v
 
     # Firebase Authentication & Meta
-    FIREBASE_PROJECT_ID: str = "ignite-ff-tournaments"
+    FIREBASE_PROJECT_ID: str = "clashiq"
     FIREBASE_CLIENT_EMAIL: str = ""
     FIREBASE_PRIVATE_KEY: str = ""
     FIREBASE_AUTH_MOCK: bool = True

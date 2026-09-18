@@ -10,7 +10,7 @@ The platform uses **Firebase Authentication** on client devices to obtain an ID 
 
 ### A. Create Firebase Project
 1. Open the [Firebase Console](https://console.firebase.google.com/).
-2. Click **Add project** and name it (e.g. `ignite-ff-prod`).
+2. Click **Add project** and name it (e.g. `clashiq`).
 3. Enable Google Analytics (optional) and create the project.
 
 ### B. Add Android Application
@@ -33,7 +33,7 @@ The platform uses **Firebase Authentication** on client devices to obtain an ID 
 3. **Facebook**:
    - Click **Facebook** → Toggle **Enable**.
    - You will need the **App ID** and **App Secret** from Meta for Developers (see Step 2 below).
-   - Copy the **OAuth redirect URI** provided by Firebase (e.g., `https://ignite-ff-prod.firebaseapp.com/__/auth/handler`).
+   - Copy the **OAuth redirect URI** provided by Firebase (e.g., `https://clashiq.firebaseapp.com/__/auth/handler`).
 
 ### D. Generate Backend Admin SDK Service Account Key
 1. Go to **Project Settings** (gear icon) → **Service accounts**.
@@ -41,8 +41,8 @@ The platform uses **Firebase Authentication** on client devices to obtain an ID 
 3. Click **Generate new private key** and confirm.
 4. Open the downloaded JSON file and extract the values for your `backend/.env`:
    ```env
-   FIREBASE_PROJECT_ID=ignite-ff-prod
-   FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@ignite-ff-prod.iam.gserviceaccount.com
+   FIREBASE_PROJECT_ID=clashiq
+   FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@clashiq.iam.gserviceaccount.com
    FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
    ```
 
@@ -55,11 +55,11 @@ The platform uses **Firebase Authentication** on client devices to obtain an ID 
 3. Select **Consumer** (or **Authenticate and request data from users with Facebook Login**).
 4. Enter Display Name: `IGNITE FF`.
 5. Under **Add a product**, find **Facebook Login** and click **Set up**.
-6. Select **Web** and add your domain (e.g. `https://free-fire-game-rose.vercel.app` or `https://ignite-ff-prod.firebaseapp.com`).
+6. Select **Web** and add your domain (e.g. `https://free-fire-game-rose.vercel.app` or `https://clashiq.firebaseapp.com`).
 7. In the left menu, go to **Facebook Login** → **Settings**:
    - Paste the **OAuth redirect URI** copied from Firebase into **Valid OAuth Redirect URIs**:
      ```
-     https://<YOUR-FIREBASE-PROJECT-ID>.firebaseapp.com/__/auth/handler
+     https://clashiq.firebaseapp.com/__/auth/handler
      ```
    - Save changes.
 8. In the left menu, go to **App Settings** → **Basic**:

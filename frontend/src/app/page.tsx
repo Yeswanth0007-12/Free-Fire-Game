@@ -44,7 +44,8 @@ export default function HomePage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
-            href="#download-app"
+            href="/clashiq-v1.0.0-release.apk"
+            download
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-extrabold uppercase tracking-wider text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition"
           >
             <Zap className="h-4 w-4 fill-black" />
@@ -250,14 +251,14 @@ export default function HomePage() {
               <span>MOBILE-FIRST TOURNAMENT PLATFORM</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
-              Play Tournaments on the Go. Download IGNITE FF Mobile.
+              Play Tournaments on the Go. Download Clashiq Mobile.
             </h3>
             <p className="text-sm text-zinc-400 leading-relaxed">
               Experience zero-latency slot booking, Google/Facebook authentication, real-time AES-256 room credential reveals, and direct UPI wallet withdrawals right from your mobile device.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <a
-                href="/igniteff-v1.0.0-release.apk"
+                href="/clashiq-v1.0.0-release.apk"
                 download
                 className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-sm uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-500/20"
               >
@@ -282,7 +283,7 @@ export default function HomePage() {
               <div className="w-16 h-4 bg-zinc-800 rounded-full mx-auto" />
               <div className="text-center space-y-2">
                 <Flame className="h-8 w-8 text-amber-500 mx-auto fill-amber-500" />
-                <div className="font-mono text-xs font-bold text-white">IGNITE FF</div>
+                <div className="font-mono text-xs font-bold text-white">Clashiq</div>
                 <div className="text-[10px] text-emerald-400 font-bold">SLOT 03 BOOKED ✓</div>
               </div>
               <div className="h-1 w-20 bg-zinc-800 rounded-full mx-auto" />
@@ -299,7 +300,7 @@ export default function HomePage() {
           <Link href="/rules" className="hover:text-slate-300">Tournament Rules</Link>
           <Link href="/disputes" className="hover:text-slate-300">Dispute Support</Link>
         </div>
-        <p>© 2026 IGNITE FF Tournament Platform. All rights reserved. Not affiliated with or endorsed by Garena.</p>
+        <p>© 2026 Clashiq Tournament Platform. All rights reserved. Not affiliated with or endorsed by Garena.</p>
       </footer>
     </div>
   );
