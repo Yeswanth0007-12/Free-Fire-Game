@@ -1,0 +1,113 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Package Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Mobile Dependencies
+        working-directory: apps/mobile
+        run: |
+          npm ci || npm install --legacy-peer-deps
+
+      - name: Prebuild Android Project (Expo CNG)
+        working-directory: apps/mobile
+        run: |
+          npx expo prebuild --platform android --clean --no-install
+
+      - name: Verify google-services.json
+        working-directory: apps/mobile
+        run: |
+          if [ ! -f "android/app/google-services.json" ]; then
+            echo "::error::google-services.json was not generated in android/app/"
+            exit 1
+          fi
+          echo "google-services.json verified successfully."
+
+      - name: Build Release APK with Gradle
+        working-directory: apps/mobile/android
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Stage APK Artifact
+        working-directory: apps/mobile
+        run: |
+          mkdir -p build-artifacts
+          RELEASE_APK=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$RELEASE_APK" ]; then
+            echo "::error::No release APK found in android/app/build/outputs/apk/release/"
+            exit 1
+          fi
+          cp "$RELEASE_APK" build-artifacts/clashiq-v1.0.4.apk
+          echo "Successfully created build-artifacts/clashiq-v1.0.4.apk"
+          ls -lh build-artifacts/clashiq-v1.0.4.apk
+
+      - name: Upload APK as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clashiq-v1.0.4-apk
+          path: apps/mobile/build-artifacts/clashiq-v1.0.4.apk
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: v1.0.4
+          name: "ClashIQ v1.0.4 (Crash-Free Release)"
+          draft: false
+          prerelease: false
+          body: |
+            ## ClashIQ Mobile App v1.0.4 - Release APK
+
+            ### Critical Bug Fixes Included:
+            - **Fixed Native Process Crash on Sign-In**: Eliminated native OkHttp `AbortController.abort()` signal under React Native 0.76 (Hermes) that triggered `SIGABRT` / `Fatal signal 6` and abruptly kicked users to the Android home screen.
+            - **Non-JSON Response Safety**: Added guards to prevent `SyntaxError: Unexpected token '<'` when backend returns HTML 404/500 pages.
+            - **Registered Release & Debug Signatures**: Correctly registered release SHA-1 (`f8398c2fc0cc30f21b1f0876cc1cd3b094c88901`) and debug SHA-1 (`b0a490b4174a8135fd0a97296a441f746611ba5b`) in `google-services.json`.
+            - **Button Re-entrancy Protection**: Locked "CONTINUE WITH GOOGLE" and "CONTINUE WITH FACEBOOK" buttons during active authentication to prevent concurrent request race conditions.
+            - **Inline Diagnostic UI**: Added in-app error feedback card with retry functionality instead of unhandled errors or process termination.
+
+            ### Direct Download:
+            Download **`clashiq-v1.0.4.apk`** below to install directly on your Android device.
+          files: apps/mobile/build-artifacts/clashiq-v1.0.4.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
