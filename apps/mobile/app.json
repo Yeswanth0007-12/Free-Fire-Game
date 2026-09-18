@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clashiq",
     "slug": "ignite-ff",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -24,15 +24,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#09090b"
       },
-      "package": "com.clashiq.tournament"
+      "package": "com.clashiq.tournament",
+      "versionCode": 2
     },
     "plugins": [
       "expo-router",
       "expo-secure-store"
     ],
     "extra": {
-      "apiUrl": "http://10.0.2.2:8000/api/v1",
-      "wsUrl": "ws://10.0.2.2:8000",
+      "apiUrl": "https://free-fire-game-rose.vercel.app/api/v1",
+      "wsUrl": "wss://free-fire-game-rose.vercel.app",
       "eas": {
         "projectId": "6eea4abe-9b5c-4d81-b25f-c9c603d50a00"
       }

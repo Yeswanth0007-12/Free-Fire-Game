@@ -61,7 +61,7 @@ export default function MyMatchesScreen() {
             <Text style={styles.emptyDesc}>Join an upcoming match in the arena to see your slot and room status here.</Text>
             <TouchableOpacity 
               style={styles.browseBtn}
-              onPress={() => router.push("/(tabs)/matches")}
+              onPress={() => router.push("/matches")}
             >
               <Text style={styles.browseBtnText}>BROWSE TOURNAMENTS</Text>
             </TouchableOpacity>

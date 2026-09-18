@@ -60,7 +60,7 @@ export default function TransactionDetailScreen() {
           if (router.canGoBack()) {
             router.back();
           } else {
-            router.replace("/(tabs)/wallet");
+            router.replace("/wallet");
           }
         }}
       >

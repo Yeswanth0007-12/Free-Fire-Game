@@ -58,7 +58,7 @@ export default function MatchLobbyScreen() {
         "Please link and verify your Free Fire numeric UID in your profile before entering paid tournament matches.",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Go to Profile", onPress: () => router.push("/(tabs)/profile") },
+          { text: "Go to Profile", onPress: () => router.push("/profile") },
         ]
       );
       return;

@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 
 const API_BASE_URL = 
   Constants.expoConfig?.extra?.apiUrl || 
-  (Platform.OS === "android" ? "http://10.0.2.2:8000/api/v1" : "http://localhost:8000/api/v1");
+  "https://free-fire-game-rose.vercel.app/api/v1";
 
 const TOKEN_KEY = "clashiq_auth_token";
 

@@ -47,7 +47,7 @@ export default function HomeScreen() {
                 <Text style={styles.verifiedText}>UID VERIFIED</Text>
               </View>
             ) : (
-              <TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
+              <TouchableOpacity onPress={() => router.push("/profile")}>
                 <Text style={styles.unverifiedText}>LINK FREE FIRE UID</Text>
               </TouchableOpacity>
             )}
@@ -63,7 +63,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity 
             style={styles.walletActionBtn}
-            onPress={() => router.push("/(tabs)/wallet")}
+            onPress={() => router.push("/wallet")}
           >
             <Text style={styles.walletActionText}>DEPOSIT / WITHDRAW</Text>
           </TouchableOpacity>
@@ -100,7 +100,7 @@ export default function HomeScreen() {
       {/* Upcoming Tournaments (Section 30) */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>UPCOMING TOURNAMENTS</Text>
-        <TouchableOpacity onPress={() => router.push("/(tabs)/matches")}>
+        <TouchableOpacity onPress={() => router.push("/matches")}>
           <Text style={styles.viewAllText}>VIEW ALL</Text>
         </TouchableOpacity>
       </View>
