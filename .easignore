@@ -1,0 +1,10 @@
+node_modules
+frontend
+backend
+contracts
+docs
+packages
+.git
+*.apk
+dist
+build
