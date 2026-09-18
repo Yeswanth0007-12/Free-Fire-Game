@@ -57,29 +57,56 @@ export async function mobileApiRequest<T = any>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3500);
+  // Safe timeout via Promise.race: avoids calling native OkHttp controller.abort()
+  // which crashes the Android process under React Native 0.76 (Hermes)
+  const TIMEOUT_MS = 5000;
+  const timeoutPromise = new Promise<ApiResponse<T>>((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: false,
+        error: {
+          code: "TIMEOUT",
+          message: "Connection timed out. Please check your network.",
+        },
+      });
+    }, TIMEOUT_MS);
+  });
 
-  try {
-    const res = await fetch(url, {
-      ...options,
-      headers,
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+  const fetchPromise = (async (): Promise<ApiResponse<T>> => {
+    try {
+      const res = await fetch(url, {
+        ...options,
+        headers,
+      });
 
-    const data = await res.json();
-    return data;
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    return {
-      success: false,
-      error: {
-        code: "NETWORK_ERROR",
-        message: error.name === "AbortError" ? "Server request timed out" : (error.message || "Failed to reach Clashiq game server"),
-      },
-    };
-  }
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        // Gracefully handle non-JSON responses (such as Vercel HTML 404/502) without throwing SyntaxError
+        return {
+          success: false,
+          error: {
+            code: `HTTP_${res.status}`,
+            message: res.ok
+              ? "Received unexpected server response"
+              : `Server returned status ${res.status}`,
+          },
+        };
+      }
+
+      const data = await res.json();
+      return data;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          code: "NETWORK_ERROR",
+          message: error?.message || "Failed to reach Clashiq game server",
+        },
+      };
+    }
+  })();
+
+  return Promise.race([fetchPromise, timeoutPromise]);
 }
 
 export const mobileApi = {

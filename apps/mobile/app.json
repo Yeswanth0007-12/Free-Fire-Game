@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clashiq",
     "slug": "ignite-ff",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -25,7 +25,8 @@
         "backgroundColor": "#09090b"
       },
       "package": "com.clashiq.tournament",
-      "versionCode": 4
+      "versionCode": 5,
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-router",

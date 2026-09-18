@@ -18,6 +18,14 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.clashiq.tournament",
+            "certificate_hash": "f8398c2fc0cc30f21b1f0876cc1cd3b094c88901"
+          }
+        },
+        {
+          "client_id": "1088916786026-83vg7h5rairpe372mep0ngfnrkn7n0bp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.clashiq.tournament",
             "certificate_hash": "b0a490b4174a8135fd0a97296a441f746611ba5b"
           }
         },

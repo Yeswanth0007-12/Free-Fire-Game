@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { UserProfile, GamingIdentity, WalletSummary } from "../types";
-import { getStoredToken, setStoredToken, clearStoredToken, mobileApi } from "../services/api";
+import { mobileApi } from "../services/api";
+import { authService, AuthResult } from "../services/authService";
+
+export type AuthStatus = 
+  | "INITIALIZING" 
+  | "SIGNED_OUT" 
+  | "AUTHENTICATING" 
+  | "AUTHENTICATED" 
+  | "AUTH_ERROR" 
+  | "AUTH_CANCELLED";
 
 const DEFAULT_USER: UserProfile = {
   id: "player_clashiq_01",
@@ -33,9 +42,17 @@ interface AuthState {
   wallet: WalletSummary | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  authStatus: AuthStatus;
+  authError: string | null;
+  activeProvider: "google" | "facebook" | "guest" | null;
+
+  // Actions
   initialize: () => Promise<void>;
+  loginWithGoogle: () => Promise<AuthResult>;
+  loginWithFacebook: () => Promise<AuthResult>;
+  loginAsGuest: (displayName?: string) => Promise<AuthResult>;
   loginWithFirebaseToken: (firebaseIdToken: string, provider?: string) => Promise<boolean>;
-  loginAsGuest: (displayName?: string) => Promise<boolean>;
+  clearAuthError: () => void;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshWallet: () => Promise<void>;
@@ -49,105 +66,209 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   wallet: null,
   isLoading: true,
   isAuthenticated: false,
+  authStatus: "INITIALIZING",
+  authError: null,
+  activeProvider: null,
 
   initialize: async () => {
+    set({ authStatus: "INITIALIZING", isLoading: true });
     try {
-      const token = await getStoredToken();
-      if (token) {
+      const session = await authService.restoreSession();
+      if (session && session.token) {
         set({
-          token,
+          token: session.token,
+          user: session.user || DEFAULT_USER,
+          gamingIdentity: session.gamingIdentity || DEFAULT_IDENTITY,
+          wallet: session.wallet || DEFAULT_WALLET,
           isAuthenticated: true,
-          user: DEFAULT_USER,
-          gamingIdentity: DEFAULT_IDENTITY,
-          wallet: DEFAULT_WALLET,
+          authStatus: "AUTHENTICATED",
           isLoading: false,
         });
-        // Background refresh without blocking UI paint
+
+        // Non-blocking background sync
         get().refreshProfile().catch(() => {});
         get().refreshWallet().catch(() => {});
         return;
       }
+
+      set({
+        token: null,
+        isAuthenticated: false,
+        authStatus: "SIGNED_OUT",
+        isLoading: false,
+      });
     } catch (err) {
-      console.warn("Auth init warning:", err);
-    } finally {
-      set({ isLoading: false });
+      set({
+        token: null,
+        isAuthenticated: false,
+        authStatus: "SIGNED_OUT",
+        isLoading: false,
+      });
     }
   },
 
-  loginWithFirebaseToken: async (firebaseIdToken: string, provider = "google.com") => {
-    set({ isLoading: true });
+  loginWithGoogle: async (): Promise<AuthResult> => {
+    set({
+      authStatus: "AUTHENTICATING",
+      authError: null,
+      activeProvider: "google",
+      isLoading: true,
+    });
+
     try {
-      const res = await mobileApi.authenticateFirebase(firebaseIdToken);
-      if (res.success && res.data) {
-        const sessionToken = res.data.access_token || res.data.token || "session_token_active";
-        await setStoredToken(sessionToken);
-        set({ token: sessionToken, isAuthenticated: true });
-        await get().refreshProfile();
-        await get().refreshWallet();
-        return true;
+      const result = await authService.signInWithGoogle();
+
+      if (result.success && result.token) {
+        set({
+          token: result.token,
+          user: result.user || DEFAULT_USER,
+          gamingIdentity: result.gamingIdentity || DEFAULT_IDENTITY,
+          wallet: result.wallet || DEFAULT_WALLET,
+          isAuthenticated: true,
+          authStatus: "AUTHENTICATED",
+          authError: null,
+          isLoading: false,
+          activeProvider: null,
+        });
+        return result;
       }
-      
-      // Standalone / offline mobile fallback
-      const token = `clashiq_${provider.split(".")[0]}_token_${Date.now()}`;
-      await setStoredToken(token);
+
+      const errorMsg = result.error || "Google sign-in could not be completed.";
       set({
-        token,
-        isAuthenticated: true,
-        user: {
-          ...DEFAULT_USER,
-          email: provider.includes("facebook") ? "player@facebook.com" : "player@gmail.com",
-          display_name: provider.includes("facebook") ? "FB Gamer" : "Pro Player",
-        },
-        gamingIdentity: DEFAULT_IDENTITY,
-        wallet: DEFAULT_WALLET,
+        authStatus: "AUTH_ERROR",
+        authError: errorMsg,
+        isLoading: false,
+        activeProvider: null,
       });
-      return true;
-    } catch (err) {
-      console.warn("Firebase sign-in fallback activated:", err);
-      const token = `clashiq_fallback_token_${Date.now()}`;
-      await setStoredToken(token);
+      return result;
+    } catch (err: any) {
+      const errorMsg = err?.message || "An unexpected error occurred during Google sign-in.";
       set({
-        token,
-        isAuthenticated: true,
-        user: DEFAULT_USER,
-        gamingIdentity: DEFAULT_IDENTITY,
-        wallet: DEFAULT_WALLET,
+        authStatus: "AUTH_ERROR",
+        authError: errorMsg,
+        isLoading: false,
+        activeProvider: null,
       });
-      return true;
-    } finally {
-      set({ isLoading: false });
+      return { success: false, error: errorMsg };
     }
   },
 
-  loginAsGuest: async (displayName = "Player") => {
-    set({ isLoading: true });
+  loginWithFacebook: async (): Promise<AuthResult> => {
+    set({
+      authStatus: "AUTHENTICATING",
+      authError: null,
+      activeProvider: "facebook",
+      isLoading: true,
+    });
+
     try {
-      const token = `clashiq_guest_token_${Date.now()}`;
-      await setStoredToken(token);
+      const result = await authService.signInWithFacebook();
+
+      if (result.success && result.token) {
+        set({
+          token: result.token,
+          user: result.user || DEFAULT_USER,
+          gamingIdentity: result.gamingIdentity || DEFAULT_IDENTITY,
+          wallet: result.wallet || DEFAULT_WALLET,
+          isAuthenticated: true,
+          authStatus: "AUTHENTICATED",
+          authError: null,
+          isLoading: false,
+          activeProvider: null,
+        });
+        return result;
+      }
+
+      const errorMsg = result.error || "Facebook sign-in could not be completed.";
       set({
-        token,
-        isAuthenticated: true,
-        user: {
-          ...DEFAULT_USER,
-          display_name: displayName,
-        },
-        gamingIdentity: DEFAULT_IDENTITY,
-        wallet: DEFAULT_WALLET,
+        authStatus: "AUTH_ERROR",
+        authError: errorMsg,
+        isLoading: false,
+        activeProvider: null,
       });
-      return true;
-    } finally {
-      set({ isLoading: false });
+      return result;
+    } catch (err: any) {
+      const errorMsg = err?.message || "An unexpected error occurred during Facebook sign-in.";
+      set({
+        authStatus: "AUTH_ERROR",
+        authError: errorMsg,
+        isLoading: false,
+        activeProvider: null,
+      });
+      return { success: false, error: errorMsg };
     }
+  },
+
+  loginAsGuest: async (displayName = "Player"): Promise<AuthResult> => {
+    set({
+      authStatus: "AUTHENTICATING",
+      authError: null,
+      activeProvider: "guest",
+      isLoading: true,
+    });
+
+    try {
+      const result = await authService.signInAsGuest(displayName);
+
+      if (result.success && result.token) {
+        set({
+          token: result.token,
+          user: result.user || { ...DEFAULT_USER, display_name: displayName },
+          gamingIdentity: result.gamingIdentity || DEFAULT_IDENTITY,
+          wallet: result.wallet || DEFAULT_WALLET,
+          isAuthenticated: true,
+          authStatus: "AUTHENTICATED",
+          authError: null,
+          isLoading: false,
+          activeProvider: null,
+        });
+        return result;
+      }
+
+      set({
+        authStatus: "AUTH_ERROR",
+        authError: result.error || "Failed to start guest session.",
+        isLoading: false,
+        activeProvider: null,
+      });
+      return result;
+    } catch (err: any) {
+      set({
+        authStatus: "AUTH_ERROR",
+        authError: err?.message || "Failed to start guest session.",
+        isLoading: false,
+        activeProvider: null,
+      });
+      return { success: false, error: err?.message };
+    }
+  },
+
+  // Retained for backwards-compatibility with existing screens
+  loginWithFirebaseToken: async (firebaseIdToken: string, provider = "google.com") => {
+    if (provider.includes("facebook")) {
+      const res = await get().loginWithFacebook();
+      return res.success;
+    } else {
+      const res = await get().loginWithGoogle();
+      return res.success;
+    }
+  },
+
+  clearAuthError: () => {
+    set({ authError: null, authStatus: get().isAuthenticated ? "AUTHENTICATED" : "SIGNED_OUT" });
   },
 
   logout: async () => {
-    await clearStoredToken();
+    await authService.signOut();
     set({
       token: null,
       user: null,
       gamingIdentity: null,
       wallet: null,
       isAuthenticated: false,
+      authStatus: "SIGNED_OUT",
+      authError: null,
+      activeProvider: null,
     });
   },
 

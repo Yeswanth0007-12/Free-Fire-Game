@@ -1,15 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { 
-  View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, SafeAreaView, ScrollView 
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, ScrollView 
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Flame, Zap, ShieldCheck, CheckCircle2 } from "lucide-react-native";
+import { Flame, Zap, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react-native";
 import { useAuthStore } from "../src/store/authStore";
 
 export default function RootEntryScreen() {
   const router = useRouter();
-  const { isAuthenticated, user, initialize, loginWithFirebaseToken, loginAsGuest } = useAuthStore();
-  const [authLoading, setAuthLoading] = useState(false);
+  const { 
+    isAuthenticated, 
+    user, 
+    initialize, 
+    loginWithGoogle, 
+    loginWithFacebook, 
+    loginAsGuest,
+    authStatus,
+    authError,
+    activeProvider,
+    clearAuthError,
+  } = useAuthStore();
+
+  const isAuthenticating = authStatus === "AUTHENTICATING";
 
   useEffect(() => {
     // Non-blocking initialization of stored session
@@ -17,42 +29,26 @@ export default function RootEntryScreen() {
   }, []);
 
   const handleGoogleSignIn = async () => {
-    setAuthLoading(true);
-    try {
-      const mockFirebaseIdToken = `google-oauth-token-${Date.now()}`;
-      await loginWithFirebaseToken(mockFirebaseIdToken, "google.com");
+    clearAuthError();
+    const res = await loginWithGoogle();
+    if (res.success) {
       router.replace("/(tabs)");
-    } catch (err: any) {
-      Alert.alert("Sign In Note", err?.message || "Entering arena as verified player.");
-      await loginAsGuest("Player");
-      router.replace("/(tabs)");
-    } finally {
-      setAuthLoading(false);
     }
   };
 
   const handleFacebookSignIn = async () => {
-    setAuthLoading(true);
-    try {
-      const mockFirebaseIdToken = `facebook-oauth-token-${Date.now()}`;
-      await loginWithFirebaseToken(mockFirebaseIdToken, "facebook.com");
+    clearAuthError();
+    const res = await loginWithFacebook();
+    if (res.success) {
       router.replace("/(tabs)");
-    } catch (err: any) {
-      Alert.alert("Sign In Note", err?.message || "Entering arena as verified player.");
-      await loginAsGuest("Player");
-      router.replace("/(tabs)");
-    } finally {
-      setAuthLoading(false);
     }
   };
 
   const handleGuestSignIn = async () => {
-    setAuthLoading(true);
-    try {
-      await loginAsGuest("Player");
+    clearAuthError();
+    const res = await loginAsGuest("Player");
+    if (res.success) {
       router.replace("/(tabs)");
-    } finally {
-      setAuthLoading(false);
     }
   };
 
@@ -77,8 +73,26 @@ export default function RootEntryScreen() {
             Authenticate your player account to join scheduled Free Fire tournaments, access custom room credentials, and win real cash.
           </Text>
 
+          {/* Error Banner with Try Again */}
+          {authError && (
+            <View style={styles.errorCard}>
+              <View style={styles.errorHeader}>
+                <AlertCircle color="#f43f5e" size={18} />
+                <Text style={styles.errorTitle}>Sign-In Notice</Text>
+              </View>
+              <Text style={styles.errorDesc}>{authError}</Text>
+              <TouchableOpacity 
+                style={styles.retryBtn} 
+                onPress={clearAuthError}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.retryText}>TRY AGAIN</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Quick Continue card if already logged in */}
-          {isAuthenticated && user && (
+          {isAuthenticated && user && !authError && (
             <TouchableOpacity 
               style={styles.continueCard}
               onPress={handleContinueDashboard}
@@ -97,22 +111,38 @@ export default function RootEntryScreen() {
             </TouchableOpacity>
           )}
 
+          {/* Google Login Button */}
           <TouchableOpacity 
-            style={styles.googleBtn} 
+            style={[styles.googleBtn, isAuthenticating && styles.btnDisabled]} 
             onPress={handleGoogleSignIn}
-            disabled={authLoading}
+            disabled={isAuthenticating}
             activeOpacity={0.8}
           >
-            <Text style={styles.googleText}>CONTINUE WITH GOOGLE</Text>
+            {activeProvider === "google" ? (
+              <View style={styles.btnRow}>
+                <ActivityIndicator color="#09090b" size="small" />
+                <Text style={styles.googleText}>SIGNING IN WITH GOOGLE...</Text>
+              </View>
+            ) : (
+              <Text style={styles.googleText}>CONTINUE WITH GOOGLE</Text>
+            )}
           </TouchableOpacity>
 
+          {/* Facebook Login Button */}
           <TouchableOpacity 
-            style={styles.facebookBtn} 
+            style={[styles.facebookBtn, isAuthenticating && styles.btnDisabled]} 
             onPress={handleFacebookSignIn}
-            disabled={authLoading}
+            disabled={isAuthenticating}
             activeOpacity={0.8}
           >
-            <Text style={styles.facebookText}>CONTINUE WITH FACEBOOK</Text>
+            {activeProvider === "facebook" ? (
+              <View style={styles.btnRow}>
+                <ActivityIndicator color="#ffffff" size="small" />
+                <Text style={styles.facebookText}>SIGNING IN WITH FACEBOOK...</Text>
+              </View>
+            ) : (
+              <Text style={styles.facebookText}>CONTINUE WITH FACEBOOK</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>
@@ -121,17 +151,27 @@ export default function RootEntryScreen() {
             <View style={styles.dividerLine} />
           </View>
 
+          {/* Guest Quick Access Button */}
           <TouchableOpacity 
-            style={styles.guestBtn} 
+            style={[styles.guestBtn, isAuthenticating && styles.btnDisabled]} 
             onPress={handleGuestSignIn}
-            disabled={authLoading}
+            disabled={isAuthenticating}
             activeOpacity={0.8}
           >
-            <Zap color="#000000" size={16} />
-            <Text style={styles.guestText}>QUICK ACCESS • ENTER DASHBOARD</Text>
+            {activeProvider === "guest" ? (
+              <View style={styles.btnRow}>
+                <ActivityIndicator color="#000000" size="small" />
+                <Text style={styles.guestText}>ENTERING ARENA...</Text>
+              </View>
+            ) : (
+              <>
+                <Zap color="#000000" size={16} />
+                <Text style={styles.guestText}>QUICK ACCESS • ENTER DASHBOARD</Text>
+              </>
+            )}
           </TouchableOpacity>
 
-          {authLoading && (
+          {isAuthenticating && (
             <View style={styles.loadingRow}>
               <ActivityIndicator color="#f59e0b" size="small" />
               <Text style={styles.loadingText}>Initializing player credentials & wallet...</Text>
@@ -213,6 +253,47 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  errorCard: {
+    backgroundColor: "rgba(244, 63, 94, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(244, 63, 94, 0.3)",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  errorTitle: {
+    color: "#f43f5e",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  errorDesc: {
+    color: "#e4e4e7",
+    fontSize: 11,
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  retryBtn: {
+    backgroundColor: "#27272a",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  retryText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "800",
+  },
   continueCard: {
     backgroundColor: "rgba(16, 185, 129, 0.08)",
     borderWidth: 1,
@@ -256,6 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 10,
   },
   googleText: {
@@ -269,6 +351,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
   facebookText: {
@@ -307,6 +390,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.5,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  btnRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
   loadingRow: {
     flexDirection: "row",
