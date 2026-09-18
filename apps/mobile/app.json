@@ -24,10 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#09090b"
       },
-      "package": "com.clashiq.tournament",
-      "permissions": [
-        "NOTIFICATIONS"
-      ]
+      "package": "com.clashiq.tournament"
     },
     "plugins": [
       "expo-router",

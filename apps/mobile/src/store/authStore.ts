@@ -60,9 +60,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: DEFAULT_USER,
           gamingIdentity: DEFAULT_IDENTITY,
           wallet: DEFAULT_WALLET,
+          isLoading: false,
         });
-        await get().refreshProfile();
-        await get().refreshWallet();
+        // Background refresh without blocking UI paint
+        get().refreshProfile().catch(() => {});
+        get().refreshWallet().catch(() => {});
+        return;
       }
     } catch (err) {
       console.warn("Auth init warning:", err);

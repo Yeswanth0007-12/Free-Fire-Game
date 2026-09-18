@@ -158,7 +158,7 @@ export default function ProfileScreen() {
           try {
             await logout();
           } finally {
-            router.replace("/auth/login");
+            router.replace("/");
           }
         }}
       >

@@ -57,20 +57,26 @@ export async function mobileApiRequest<T = any>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3500);
+
   try {
     const res = await fetch(url, {
       ...options,
       headers,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const data = await res.json();
     return data;
   } catch (error: any) {
+    clearTimeout(timeoutId);
     return {
       success: false,
       error: {
         code: "NETWORK_ERROR",
-        message: error.message || "Failed to reach Clashiq game server",
+        message: error.name === "AbortError" ? "Server request timed out" : (error.message || "Failed to reach Clashiq game server"),
       },
     };
   }
