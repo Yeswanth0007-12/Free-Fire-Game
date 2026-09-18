@@ -44,8 +44,8 @@ export default function HomePage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
-            href="/clashiq-v1.0.0-release.apk"
-            download
+            href="/clashiq-v1.0.1-release.apk"
+            download="clashiq-v1.0.1-release.apk"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-extrabold uppercase tracking-wider text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition"
           >
             <Zap className="h-4 w-4 fill-black" />
@@ -258,8 +258,8 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <a
-                href="/clashiq-v1.0.0-release.apk"
-                download
+                href="/clashiq-v1.0.1-release.apk"
+                download="clashiq-v1.0.1-release.apk"
                 className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-sm uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-500/20"
               >
                 <Zap className="h-4 w-4 fill-black" />
