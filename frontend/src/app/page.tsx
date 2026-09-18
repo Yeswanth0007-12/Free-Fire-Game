@@ -44,8 +44,8 @@ export default function HomePage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
-            href="https://expo.dev/artifacts/eas/mIXgncp038IXVnn3LTCW_LSLmRMptCzIc0FlmSSjiBw.apk"
-            download="clashiq-v1.0.0-release.apk"
+            href="https://expo.dev/artifacts/eas/0SXOuj8201VedXTq_c3FfYYh5B-dSQfEUqyoIudxm3U.apk"
+            download="Clashiq.apk"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-sm font-extrabold uppercase tracking-wider text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition"
           >
             <Zap className="h-4 w-4 fill-black" />
@@ -258,8 +258,8 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <a
-                href="https://expo.dev/artifacts/eas/mIXgncp038IXVnn3LTCW_LSLmRMptCzIc0FlmSSjiBw.apk"
-                download="clashiq-v1.0.0-release.apk"
+                href="https://expo.dev/artifacts/eas/0SXOuj8201VedXTq_c3FfYYh5B-dSQfEUqyoIudxm3U.apk"
+                download="Clashiq.apk"
                 className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-sm uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-500/20"
               >
                 <Zap className="h-4 w-4 fill-black" />
@@ -274,7 +274,7 @@ export default function HomePage() {
               </button>
             </div>
             <p className="text-[11px] text-zinc-500">
-              Compatible with Android 8.0+ • Version 1.0.0 (Release Build) • Signed SHA-256
+              Compatible with Android 8.0+ • Version 1.0.3 (Clashiq Release Build) • Signed SHA-256
             </p>
           </div>
 

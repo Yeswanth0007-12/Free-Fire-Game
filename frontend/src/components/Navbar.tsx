@@ -68,8 +68,8 @@ export default function Navbar() {
         {/* User actions */}
         <div className="flex items-center gap-3">
           <a
-            href="/clashiq-v1.0.3-release.apk"
-            download="clashiq-v1.0.3-release.apk"
+            href="https://expo.dev/artifacts/eas/0SXOuj8201VedXTq_c3FfYYh5B-dSQfEUqyoIudxm3U.apk"
+            download="Clashiq.apk"
             className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20 transition shadow-sm"
             title="Download Android APK"
           >
