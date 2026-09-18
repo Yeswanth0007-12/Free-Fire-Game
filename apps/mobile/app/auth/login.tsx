@@ -157,7 +157,9 @@ const styles = StyleSheet.create({
   },
   content: { 
     gap: 12,
-    marginVertical: "auto"
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 24,
   },
   sectionHeading: { 
     color: "#ffffff", 

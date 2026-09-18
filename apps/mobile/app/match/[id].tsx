@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { 
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Clipboard, RefreshControl 
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share, RefreshControl 
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -38,9 +38,9 @@ export default function MatchLobbyScreen() {
 
   const handleCopy = (text: string, label: string) => {
     try {
-      Clipboard.setString(text);
+      Share.share({ message: text }).catch(() => {});
     } catch (e) {
-      console.warn("Clipboard copy fallback:", e);
+      console.warn("Share copy fallback:", e);
     }
     setCopiedKey(label);
     setTimeout(() => setCopiedKey(null), 2000);
