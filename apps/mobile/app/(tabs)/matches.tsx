@@ -23,8 +23,10 @@ export default function MatchesScreen() {
   });
 
   const filteredMatches = (matches || []).filter((m) => {
+    if (!m) return false;
     if (selectedFilter === "ALL") return true;
-    return m.match_format.toUpperCase().includes(selectedFilter);
+    const fmt = (m.match_format || "").toUpperCase();
+    return fmt.includes(selectedFilter);
   });
 
   return (

@@ -153,7 +153,13 @@ export default function ProfileScreen() {
       </View>
 
       {/* Logout Action */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
+      <TouchableOpacity 
+        style={styles.logoutBtn} 
+        onPress={async () => {
+          await logout();
+          router.replace("/auth/login");
+        }}
+      >
         <LogOut color="#f43f5e" size={16} />
         <Text style={styles.logoutText}>SIGN OUT</Text>
       </TouchableOpacity>

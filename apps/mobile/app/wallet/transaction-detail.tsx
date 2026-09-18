@@ -54,7 +54,16 @@ export default function TransactionDetailScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Top Bar / Back button */}
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity 
+        style={styles.backBtn} 
+        onPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace("/(tabs)/wallet");
+          }
+        }}
+      >
         <ChevronLeft color="#a1a1aa" size={20} />
         <Text style={styles.backText}>Back to Wallet</Text>
       </TouchableOpacity>
