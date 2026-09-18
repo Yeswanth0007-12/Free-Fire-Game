@@ -76,7 +76,7 @@ export default function MyMatchesScreen() {
               <Text style={styles.codeText}>{m.public_match_code}</Text>
               <View style={[styles.statusBadge, m.status === "ROOM_RELEASED" && styles.statusBadgeReleased]}>
                 <Text style={[styles.statusText, m.status === "ROOM_RELEASED" && styles.statusTextReleased]}>
-                  {m.status.replace(/_/g, " ")}
+                  {(m.status || "MATCH").replace(/_/g, " ")}
                 </Text>
               </View>
             </View>

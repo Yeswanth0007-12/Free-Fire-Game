@@ -104,7 +104,7 @@ export default function MatchLobbyScreen() {
           <Text style={styles.matchCode}>MATCH #{match.public_match_code}</Text>
           <View style={[styles.statusBadge, match.status === "ROOM_RELEASED" && styles.statusBadgeGreen]}>
             <Text style={[styles.statusText, match.status === "ROOM_RELEASED" && styles.statusTextGreen]}>
-              {match.status.replace(/_/g, " ")}
+              {(match.status || "SCHEDULED").replace(/_/g, " ")}
             </Text>
           </View>
         </View>

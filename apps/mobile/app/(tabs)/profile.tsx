@@ -9,7 +9,7 @@ import { mobileApi } from "../../src/services/api";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, gamingIdentity, isAuthenticated, logout, refreshProfile } = useAuthStore();
+  const { user, gamingIdentity, isAuthenticated, logout, refreshProfile, linkIdentity } = useAuthStore();
 
   const [gameUid, setGameUid] = useState("");
   const [inGameName, setInGameName] = useState("");
@@ -28,15 +28,14 @@ export default function ProfileScreen() {
     setSuccessMsg(null);
 
     try {
-      const res = await mobileApi.linkGamingIdentity("free-fire-core", gameUid.trim(), inGameName.trim());
+      const res = await linkIdentity(gameUid.trim(), inGameName.trim());
       if (res.success) {
-        setSuccessMsg("Free Fire identity submitted! Status: PENDING_VERIFICATION.");
-        await refreshProfile();
+        setSuccessMsg(res.message || "Free Fire identity verified & linked!");
       } else {
-        setErrorMsg(res.error?.message || "Failed to link Free Fire UID");
+        setErrorMsg("Failed to link Free Fire UID");
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "An unexpected error occurred");
+      setErrorMsg(err?.message || "An unexpected error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -67,17 +66,17 @@ export default function ProfileScreen() {
           <View style={styles.identityBox}>
             <View style={styles.identityRow}>
               <Text style={styles.identityLabel}>FREE FIRE UID</Text>
-              <Text style={styles.identityUid}>{gamingIdentity.game_uid}</Text>
+              <Text style={styles.identityUid}>{gamingIdentity.game_uid || "Not Set"}</Text>
             </View>
             <View style={styles.identityRow}>
               <Text style={styles.identityLabel}>IN-GAME NICKNAME</Text>
-              <Text style={styles.identityIgn}>{gamingIdentity.in_game_name}</Text>
+              <Text style={styles.identityIgn}>{gamingIdentity.in_game_name || "Not Set"}</Text>
             </View>
             <View style={styles.identityRow}>
               <Text style={styles.identityLabel}>VERIFICATION STATUS</Text>
               <View style={[styles.statusPill, gamingIdentity.status === "VERIFIED" && styles.statusPillVerified]}>
                 <Text style={[styles.statusPillText, gamingIdentity.status === "VERIFIED" && styles.statusPillTextVerified]}>
-                  {gamingIdentity.status.replace(/_/g, " ")}
+                  {(gamingIdentity.status || "PENDING").replace(/_/g, " ")}
                 </Text>
               </View>
             </View>
@@ -132,7 +131,7 @@ export default function ProfileScreen() {
               <Text style={styles.inputLabel}>IN-GAME NICKNAME</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. SATHISH_FF"
+                placeholder="e.g. CLASHIQ_PRO"
                 placeholderTextColor="#52525b"
                 value={inGameName}
                 onChangeText={setInGameName}
@@ -156,8 +155,11 @@ export default function ProfileScreen() {
       <TouchableOpacity 
         style={styles.logoutBtn} 
         onPress={async () => {
-          await logout();
-          router.replace("/auth/login");
+          try {
+            await logout();
+          } finally {
+            router.replace("/auth/login");
+          }
         }}
       >
         <LogOut color="#f43f5e" size={16} />

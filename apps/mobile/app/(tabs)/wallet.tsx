@@ -180,7 +180,7 @@ export default function WalletScreen() {
                 )}
               </View>
               <View style={{ marginLeft: 10, flex: 1 }}>
-                <Text style={styles.txType}>{tx.transaction_type.replace(/_/g, " ")}</Text>
+                <Text style={styles.txType}>{(tx.transaction_type || "TRANSACTION").replace(/_/g, " ")}</Text>
                 <Text style={styles.txDesc} numberOfLines={1}>{tx.description || tx.reference_id || "Ledger entry"}</Text>
                 <Text style={styles.txDate}>{new Date(tx.created_at).toLocaleString()}</Text>
               </View>

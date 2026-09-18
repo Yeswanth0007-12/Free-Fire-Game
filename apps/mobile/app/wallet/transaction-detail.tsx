@@ -83,7 +83,7 @@ export default function TransactionDetailScreen() {
           )}
         </View>
 
-        <Text style={styles.typeLabel}>{type.replace(/_/g, " ")}</Text>
+        <Text style={styles.typeLabel}>{(type || "TRANSACTION").replace(/_/g, " ")}</Text>
 
         <Text
           style={[
