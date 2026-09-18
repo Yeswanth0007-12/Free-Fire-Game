@@ -1,7 +1,9 @@
+import "react-native-gesture-handler"; // MUST be first import — required by react-navigation/react-native-gesture-handler
 import React from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -19,23 +21,25 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <StatusBar style="light" backgroundColor="#09090b" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: "#09090b" },
-          headerTintColor: "#ffffff",
-          headerTitleStyle: { fontWeight: "bold" },
-          contentStyle: { backgroundColor: "#09090b" },
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/login" options={{ title: "Player Authentication", headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="match/[id]" options={{ title: "Match Lobby", headerShown: true }} />
-        <Stack.Screen name="match/register-slot" options={{ title: "Select Slot & Join", headerShown: true }} />
-        <Stack.Screen name="wallet/transaction-detail" options={{ title: "Ledger Record", headerShown: true }} />
-      </Stack>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="light" backgroundColor="#09090b" />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: "#09090b" },
+            headerTintColor: "#ffffff",
+            headerTitleStyle: { fontWeight: "bold" },
+            contentStyle: { backgroundColor: "#09090b" },
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ title: "Player Authentication", headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="match/[id]" options={{ title: "Match Lobby", headerShown: true }} />
+          <Stack.Screen name="match/register-slot" options={{ title: "Select Slot & Join", headerShown: true }} />
+          <Stack.Screen name="wallet/transaction-detail" options={{ title: "Ledger Record", headerShown: true }} />
+        </Stack>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
