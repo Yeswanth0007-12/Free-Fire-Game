@@ -62,7 +62,7 @@ export default function MatchesScreen() {
         renderItem={({ item: m }) => (
           <TouchableOpacity 
             style={styles.card}
-            onPress={() => router.push({ pathname: "/match/[id]", params: { id: m.id } })}
+            onPress={() => { try { router.push({ pathname: "/match/[id]", params: { id: m.id } }); } catch {} }}
           >
             <View style={styles.cardHeader}>
               <View style={styles.badge}>

@@ -18,7 +18,7 @@ async def download_apk(request: Request, json: bool = False):
                 "version": settings.LATEST_APP_VERSION,
                 "version_code": settings.LATEST_VERSION_CODE,
                 "download_url": settings.APK_DOWNLOAD_URL,
-                "filename": "clashiq-v1.0.4.apk",
+                "filename": "clashiq-v1.0.5.apk",
             },
             message="APK download link retrieved successfully"
         )
@@ -39,6 +39,9 @@ async def get_app_info():
             "force_update": settings.FORCE_UPDATE_ENABLED,
             "download_url": settings.APK_DOWNLOAD_URL,
             "release_notes": [
+                "Fixed startup crash in BottomTabBar caused by an incompatible query-string build; pinned query-string@7.1.3.",
+                "Added Google and Facebook account-ID picker: choose the provider account to sign in with, add another account, then continue to the dashboard.",
+                "Provider accounts are remembered across restarts, with the most recently used account pre-selected.",
                 "Fixed native OkHttp SIGABRT process crash on Android when authenticating with Google or Facebook.",
                 "Enhanced offline error cards with retry action.",
                 "Updated SHA-1 and SHA-256 release certificate registration for Firebase Auth.",

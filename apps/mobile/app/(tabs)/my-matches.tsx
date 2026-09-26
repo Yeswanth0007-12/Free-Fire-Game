@@ -61,7 +61,7 @@ export default function MyMatchesScreen() {
             <Text style={styles.emptyDesc}>Join an upcoming match in the arena to see your slot and room status here.</Text>
             <TouchableOpacity 
               style={styles.browseBtn}
-              onPress={() => router.push("/matches")}
+              onPress={() => { try { router.push("/matches"); } catch {} }}
             >
               <Text style={styles.browseBtnText}>BROWSE TOURNAMENTS</Text>
             </TouchableOpacity>
@@ -70,7 +70,7 @@ export default function MyMatchesScreen() {
         renderItem={({ item: m }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => router.push({ pathname: "/match/[id]", params: { id: m.id } })}
+            onPress={() => { try { router.push({ pathname: "/match/[id]", params: { id: m.id } }); } catch {} }}
           >
             <View style={styles.cardHeader}>
               <Text style={styles.codeText}>{m.public_match_code}</Text>

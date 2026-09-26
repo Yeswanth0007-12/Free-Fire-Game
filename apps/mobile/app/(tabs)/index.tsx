@@ -47,7 +47,7 @@ export default function HomeScreen() {
                 <Text style={styles.verifiedText}>UID VERIFIED</Text>
               </View>
             ) : (
-              <TouchableOpacity onPress={() => router.push("/profile")}>
+              <TouchableOpacity onPress={() => { try { router.push("/profile"); } catch {} }}>
                 <Text style={styles.unverifiedText}>LINK FREE FIRE UID</Text>
               </TouchableOpacity>
             )}
@@ -63,7 +63,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity 
             style={styles.walletActionBtn}
-            onPress={() => router.push("/wallet")}
+            onPress={() => { try { router.push("/wallet"); } catch {} }}
           >
             <Text style={styles.walletActionText}>DEPOSIT / WITHDRAW</Text>
           </TouchableOpacity>
@@ -100,7 +100,7 @@ export default function HomeScreen() {
       {/* Upcoming Tournaments (Section 30) */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>UPCOMING TOURNAMENTS</Text>
-        <TouchableOpacity onPress={() => router.push("/matches")}>
+        <TouchableOpacity onPress={() => { try { router.push("/matches"); } catch {} }}>
           <Text style={styles.viewAllText}>VIEW ALL</Text>
         </TouchableOpacity>
       </View>
@@ -114,7 +114,7 @@ export default function HomeScreen() {
           <TouchableOpacity 
             key={m.id} 
             style={styles.matchCard}
-            onPress={() => router.push({ pathname: "/match/[id]", params: { id: m.id } })}
+            onPress={() => { try { router.push({ pathname: "/match/[id]", params: { id: m.id } }); } catch {} }}
           >
             <View style={styles.matchTop}>
               <View style={styles.formatBadge}>

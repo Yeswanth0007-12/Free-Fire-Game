@@ -157,9 +157,8 @@ export default function ProfileScreen() {
         onPress={async () => {
           try {
             await logout();
-          } finally {
-            router.replace("/");
-          }
+          } catch {}
+          try { router.replace("/"); } catch {}
         }}
       >
         <LogOut color="#f43f5e" size={16} />

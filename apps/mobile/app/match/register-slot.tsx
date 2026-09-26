@@ -103,7 +103,7 @@ export default function RegisterSlotScreen() {
           [
             {
               text: "Enter Match Lobby",
-              onPress: () => router.replace({ pathname: "/match/[id]", params: { id: matchId } }),
+              onPress: () => { try { router.replace({ pathname: "/match/[id]", params: { id: matchId } }); } catch {} },
             },
           ]
         );

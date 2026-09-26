@@ -29,31 +29,37 @@ export default function RootEntryScreen() {
   }, []);
 
   const handleGoogleSignIn = async () => {
-    clearAuthError();
-    const res = await loginWithGoogle();
-    if (res.success) {
-      router.replace("/(tabs)");
-    }
+    try {
+      clearAuthError();
+      const res = await loginWithGoogle();
+      if (res.success) {
+        try { router.replace("/(tabs)"); } catch {}
+      }
+    } catch {}
   };
 
   const handleFacebookSignIn = async () => {
-    clearAuthError();
-    const res = await loginWithFacebook();
-    if (res.success) {
-      router.replace("/(tabs)");
-    }
+    try {
+      clearAuthError();
+      const res = await loginWithFacebook();
+      if (res.success) {
+        try { router.replace("/(tabs)"); } catch {}
+      }
+    } catch {}
   };
 
   const handleGuestSignIn = async () => {
-    clearAuthError();
-    const res = await loginAsGuest("Player");
-    if (res.success) {
-      router.replace("/(tabs)");
-    }
+    try {
+      clearAuthError();
+      const res = await loginAsGuest("Player");
+      if (res.success) {
+        try { router.replace("/(tabs)"); } catch {}
+      }
+    } catch {}
   };
 
   const handleContinueDashboard = () => {
-    router.replace("/(tabs)");
+    try { router.replace("/(tabs)"); } catch {}
   };
 
   return (

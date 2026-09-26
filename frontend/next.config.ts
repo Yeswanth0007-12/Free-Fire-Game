@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/download/apk",
-        destination: "https://github.com/Yeswanth0007-12/Free-Fire-Game/releases/download/v1.0.4/clashiq-v1.0.4.apk",
+        destination: "https://github.com/Yeswanth0007-12/Free-Fire-Game/releases/download/v1.0.5/clashiq-v1.0.5.apk",
       },
     ];
   },

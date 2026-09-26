@@ -57,11 +57,13 @@ export default function TransactionDetailScreen() {
       <TouchableOpacity 
         style={styles.backBtn} 
         onPress={() => {
-          if (router.canGoBack()) {
-            router.back();
-          } else {
-            router.replace("/wallet");
-          }
+          try {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              try { router.replace("/wallet"); } catch {}
+            }
+          } catch {}
         }}
       >
         <ChevronLeft color="#a1a1aa" size={20} />

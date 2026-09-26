@@ -23,7 +23,7 @@ async def test_app_download_redirect():
         assert res3.status_code == 200
         data = res3.json()
         assert data["success"] is True
-        assert data["data"]["version"] == "1.0.4"
+        assert data["data"]["version"] == "1.0.5"
         assert data["data"]["download_url"] == settings.APK_DOWNLOAD_URL
 
 
@@ -35,8 +35,8 @@ async def test_app_info():
         assert res.status_code == 200
         data = res.json()
         assert data["success"] is True
-        assert data["data"]["latest_version"] == "1.0.4"
-        assert data["data"]["latest_version_code"] == 5
+        assert data["data"]["latest_version"] == "1.0.5"
+        assert data["data"]["latest_version_code"] == 6
         assert data["data"]["download_url"] == settings.APK_DOWNLOAD_URL
 
 

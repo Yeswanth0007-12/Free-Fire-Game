@@ -48,7 +48,7 @@ export default function MatchLobbyScreen() {
 
   const handleJoinPress = () => {
     if (!isAuthenticated) {
-      router.push("/auth/login");
+      try { router.push("/auth/login"); } catch {}
       return;
     }
 
@@ -58,16 +58,18 @@ export default function MatchLobbyScreen() {
         "Please link and verify your Free Fire numeric UID in your profile before entering paid tournament matches.",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Go to Profile", onPress: () => router.push("/profile") },
+          { text: "Go to Profile", onPress: () => { try { router.push("/profile"); } catch {} } },
         ]
       );
       return;
     }
 
-    router.push({
-      pathname: "/match/register-slot",
-      params: { id: matchId },
-    });
+    try {
+      router.push({
+        pathname: "/match/register-slot",
+        params: { id: matchId },
+      });
+    } catch {}
   };
 
   if (matchLoading) {

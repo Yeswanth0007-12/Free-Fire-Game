@@ -157,7 +157,7 @@ export default function WalletScreen() {
           <TouchableOpacity 
             style={styles.txRow}
             activeOpacity={0.7}
-            onPress={() => router.push({
+            onPress={() => { try { router.push({
               pathname: "/wallet/transaction-detail",
               params: {
                 id: tx.id,
@@ -169,7 +169,7 @@ export default function WalletScreen() {
                 description: tx.description || "",
                 created_at: tx.created_at,
               }
-            })}
+            }); } catch {} }}
           >
             <View style={styles.txLeft}>
               <View style={[styles.iconBox, tx.direction === "CREDIT" ? styles.creditBox : styles.debitBox]}>

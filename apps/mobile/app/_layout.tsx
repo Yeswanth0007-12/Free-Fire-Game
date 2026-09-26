@@ -1,4 +1,5 @@
 import "react-native-gesture-handler"; // MUST be first import — required by react-navigation/react-native-gesture-handler
+import "../src/services/errorHandler"; // Global error handler — must load before any other module
 import React from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";

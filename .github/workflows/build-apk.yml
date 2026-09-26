@@ -80,38 +80,47 @@ jobs:
             echo "::error::No release APK found in android/app/build/outputs/apk/release/"
             exit 1
           fi
-          cp "$RELEASE_APK" build-artifacts/clashiq-v1.0.4.apk
-          echo "Successfully created build-artifacts/clashiq-v1.0.4.apk"
-          ls -lh build-artifacts/clashiq-v1.0.4.apk
+          cp "$RELEASE_APK" build-artifacts/clashiq-v1.0.5.apk
+          echo "Successfully created build-artifacts/clashiq-v1.0.5.apk"
+          ls -lh build-artifacts/clashiq-v1.0.5.apk
 
       - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: clashiq-v1.0.4-apk
-          path: apps/mobile/build-artifacts/clashiq-v1.0.4.apk
+          name: clashiq-v1.0.5-apk
+          path: apps/mobile/build-artifacts/clashiq-v1.0.5.apk
           retention-days: 30
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: v1.0.4
-          name: "ClashIQ v1.0.4 (Crash-Free Release)"
+          tag_name: v1.0.5
+          name: "ClashIQ v1.0.5 (Account Picker Release)"
           draft: false
           prerelease: false
           body: |
-            ## ClashIQ Mobile App v1.0.4 - Release APK
+            ## ClashIQ Mobile App v1.0.5 - Release APK
+
+            ### What's New:
+            - **Account-ID Picker**: "CONTINUE WITH GOOGLE" / "CONTINUE WITH FACEBOOK" now open a "Choose an account" screen listing the provider account IDs on the device. Pick the ID you want, optionally add another account, then continue straight to the dashboard signed in as that account.
+            - **Account Memory**: Previously used provider accounts are remembered across restarts and the most recently used one is pre-selected.
+            - **Selected Identity Everywhere**: The picked account's ID, email and display name are stamped onto the session, so Home and Player Profile show the account you actually chose.
 
             ### Critical Bug Fixes Included:
+            - **Fixed Startup Crash in BottomTabBar**: Root-caused an immediate crash on launch to `query-string@9.5.1` (ESM-only) being hoisted into expo-router 4.0.22 and throwing `Cannot read property 'stringify' of undefined` in `getPathDataFromState`. Pinned `query-string@7.1.3`.
             - **Fixed Native Process Crash on Sign-In**: Eliminated native OkHttp `AbortController.abort()` signal under React Native 0.76 (Hermes) that triggered `SIGABRT` / `Fatal signal 6` and abruptly kicked users to the Android home screen.
             - **Non-JSON Response Safety**: Added guards to prevent `SyntaxError: Unexpected token '<'` when backend returns HTML 404/500 pages.
             - **Registered Release & Debug Signatures**: Correctly registered release SHA-1 (`f8398c2fc0cc30f21b1f0876cc1cd3b094c88901`) and debug SHA-1 (`b0a490b4174a8135fd0a97296a441f746611ba5b`) in `google-services.json`.
             - **Button Re-entrancy Protection**: Locked "CONTINUE WITH GOOGLE" and "CONTINUE WITH FACEBOOK" buttons during active authentication to prevent concurrent request race conditions.
             - **Inline Diagnostic UI**: Added in-app error feedback card with retry functionality instead of unhandled errors or process termination.
 
+            ### Upgrade Note:
+            Android `versionCode` bumped from `5` to `6`, so this installs as a normal upgrade over v1.0.4.
+
             ### Direct Download:
-            Download **`clashiq-v1.0.4.apk`** below to install directly on your Android device.
-          files: apps/mobile/build-artifacts/clashiq-v1.0.4.apk
+            Download **`clashiq-v1.0.5.apk`** below to install directly on your Android device.
+          files: apps/mobile/build-artifacts/clashiq-v1.0.5.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
