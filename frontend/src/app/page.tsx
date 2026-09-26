@@ -274,7 +274,7 @@ export default function HomePage() {
               </button>
             </div>
             <p className="text-[11px] text-zinc-500">
-              Compatible with Android 8.0+ • Version 1.0.3 (Clashiq Release Build) • Signed SHA-256
+              Compatible with Android 8.0+ • Version 1.0.5 (Clashiq Release Build) • Signed SHA-256
             </p>
           </div>
 
