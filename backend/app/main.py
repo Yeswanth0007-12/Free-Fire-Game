@@ -145,6 +145,15 @@ app.include_router(admin_gaming_identities_router, prefix=api_v1_prefix)
 app.include_router(app_info_router, prefix=api_v1_prefix)
 
 
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+async def root_health():
+    """Root probe so platform health checks (Render/Vercel) get a 200 instead of 404."""
+    return ApiResponse.ok(
+        data={"service": "clashiq-api", "status": "alive", "version": settings.LATEST_APP_VERSION},
+        message="Success",
+    )
+
+
 @app.get("/download/apk", include_in_schema=True, tags=["App"])
 async def root_download_apk():
     """Permanent root redirect to the latest ClashIQ Android release APK."""
